@@ -5,7 +5,6 @@ import re
 import hashlib
 from web_backend.user import logic
 
-
 user = Blueprint('user', __name__)
 
 
@@ -165,7 +164,88 @@ def logout():
 
 @user.route('/user_list', methods=['GET'])
 def user_list():
-    pass
+    page = request.args.get('page', 0)
+    limit = request.args.get('limit', 10)
+    is_active = request.args.get('is_active', 1)
+    pattern = re.compile(r'^[0-9]{1,50}$')
+    page = pattern.search(str(page))
+    limit = pattern.search(str(limit))
+    is_active = pattern.search(str(is_active))
+    if page is None or limit is None or is_active is None:
+        data = {
+            "object": None,
+            "msg": "参数非法",
+            "code": 9399,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    # 判断是否管理员
+    u_name = request.cookies.get('username')
+    select = "select is_admin from user_info where u_name=%s and is_delete=0 and is_active=1"
+    s = pymysql.SQLMysql()
+    is_null = s.query_one(select, [u_name, ])
+    if is_null is None:
+        data = {
+            "object": None,
+            "msg": "参数非法",
+            "code": 9398,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    if is_null[0] == 1:
+        sql = "select u_name, u_phone, is_active from user_info where is_delete=0 limit %s, %s"
+        list_n = s.query_all(sql, [int(page[0]), int(limit[0]), ])
+        if not list_n:
+            data = {
+                "object": None,
+                "is_admin": True,
+                "msg": "查询成功",
+                "code": 9199,
+                "result": True
+            }
+            return Response(json.dumps(data), content_type='application/json')
+        context = []
+        for i in range(len(list_n)):
+            username, phone, is_active = list_n[i]
+            context.append({
+                "username": username,
+                "password": "********",
+                "phone": phone,
+                "active": True if is_active == 1 else False
+            })
+        data = {
+            "object": context,
+            "is_admin": True,
+            "msg": "查询成功",
+            "code": 9198,
+            "result": True
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    elif is_null[0] == 0:
+        sql = "select u_name, u_phone from user_info where is_delete=0 and is_active=1 and u_name=%s"
+        list_p = s.query_one(sql, [u_name, ])
+        if list_p is None:
+            data = {
+                "object": None,
+                "is_admin": True,
+                "msg": "查询成功",
+                "code": 9199,
+                "result": True
+            }
+            return Response(json.dumps(data), content_type='application/json')
+        username, phone = list_p
+        data = {
+            "object": {
+                "username": username,
+                "password": "********",
+                "phone": phone
+            },
+            "is_admin": False,
+            "msg": "查询成功",
+            "code": 9197,
+            "result": True
+        }
+        return Response(json.dumps(data), content_type='application/json')
 
 
 @user.route('/user_list/delete', methods=['POST'])
@@ -312,5 +392,3 @@ def user_update():
             "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
-
-

@@ -9,7 +9,7 @@ from mysql.pymysql import SQLMysql
 app = Flask(__name__)
 
 
-lists = ['/login', '/logout', '/user_list/resigter']
+lists = ['/login', '/user_list/update']
 
 
 @app.before_request
@@ -31,7 +31,7 @@ def interceptor():
         return Response(json.dumps(data), content_type='application/json')
     # 判断用户数据是否正确
     s = SQLMysql()
-    sql = "select u_id, u_password, u_salt from user_info where u_name=%s"
+    sql = "select u_id, u_password, u_salt from user_info where u_name=%s and is_active=1 and is_delete=0"
     is_null = s.query_one(sql, [username, ])
     if is_null is None:
         data = {

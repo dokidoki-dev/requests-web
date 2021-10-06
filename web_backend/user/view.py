@@ -170,7 +170,69 @@ def user_list():
 
 @user.route('/user_list/delete', methods=['POST'])
 def user_delete():
-    pass
+    username = request.json.get('username', "")
+    pattern = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]{4,15}$')
+    username = pattern.search(str(username))
+    if username is None:
+        data = {
+            "object": None,
+            "msg": "填写的信息校验不通过",
+            "code": 9599,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    s = pymysql.SQLMysql()
+    # 查询当前用户是否存在
+    sl = "select username from user_info where u_name=%s and is_delete=0"
+    is_null = s.query_one(sl, [username[0]])
+    if is_null is None:
+        data = {
+            "object": None,
+            "msg": "用户删除失败",
+            "code": 9598,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    # 判断是否管理员
+    user_name = request.cookies.get('username')
+    select = "select is_admin from user_info where u_name=%s and is_delete=0"
+    sql = "update user_info set is_delete=1, delete_time=now() where u_name=%s and is_delete=0"
+    ok = s.query_one(select, [user_name, ])
+    if ok is None:
+        data = {
+            "object": None,
+            "msg": "参数非法",
+            "code": 9597,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    if ok[0] == 1:
+        # 说明是管理员
+        nok = s.update_one(sql, [(username[0]), ])
+        if nok:
+            data = {
+                "object": None,
+                "msg": "用户删除成功!",
+                "code": 9596,
+                "result": True
+            }
+            return Response(json.dumps(data), content_type='application/json')
+        else:
+            data = {
+                "object": None,
+                "msg": "未知异常!",
+                "code": 9595,
+                "result": False
+            }
+            return Response(json.dumps(data), content_type='application/json')
+    else:
+        data = {
+            "object": None,
+            "msg": "权限不足",
+            "code": 9594,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
 
 
 @user.route('/user_list/update', methods=['POST'])
@@ -199,11 +261,20 @@ def user_update():
     salt = logic.hash_salt()
     password = hashlib.sha256((password[0] + salt).encode('utf-8')).hexdigest()
     s = pymysql.SQLMysql()
-    sql_s = "update user_info set u_password=%s, u_phone=%s, is_active=%s, u_salt=%s, modfiy_time=now() where u_name=%s"
+    sql_s = "update user_info set u_password=%s, u_phone=%s, is_active=%s, u_salt=%s, modfiy_time=now() where u_name=%s and is_delete=0"
     # 判断是否管理员
     user_name = request.cookies.get('username')
-    select = "select is_admin from user_info where u_name=%s"
-    if s.query_one(select, [user_name, ])[0] == 1:
+    select = "select is_admin from user_info where u_name=%s and is_delete=0"
+    is_null = s.query_one(select, [user_name, ])
+    if is_null is None:
+        data = {
+            "object": None,
+            "msg": "参数非法",
+            "code": 9099,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    if is_null[0] == 1:
         # 说明是管理员
         ok = s.update_one(sql_s, [password, (phone[0]), (is_active[0]), salt, (username[0]), ])
         if ok:
@@ -223,8 +294,7 @@ def user_update():
             }
             return Response(json.dumps(data), content_type='application/json')
     # 普通用户更新自己信息
-    sql_p = "update user_info set u_password=%s, u_phone=%s, u_salt=%s, modfiy_time=now() where u_name=%s"
-    print(password, phone[0], salt,user_name)
+    sql_p = "update user_info set u_password=%s, u_phone=%s, u_salt=%s, modfiy_time=now() where u_name=%s and is_delete=0 and is_active=1"
     ok = s.update_one(sql_p, [password, (phone[0]), salt, user_name, ])
     if ok:
         data = {

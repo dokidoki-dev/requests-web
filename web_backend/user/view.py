@@ -14,14 +14,12 @@ user = Blueprint('user', __name__)
 def login():
     username = request.json.get('username', None).lower()
     password = request.json.get('password', None)
-    print(username, password)
     if username is None or password is None:
         data = {
             "object": None,
             "msg": "用户名或密码错误",
             "code": 9999,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
     # 查询用户是否存在
@@ -33,8 +31,7 @@ def login():
             "object": None,
             "msg": "用户名或密码错误",
             "code": 9998,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
     if is_null[3] == 0:
@@ -42,8 +39,7 @@ def login():
             "object": None,
             "msg": "账户已禁用，禁止登录！",
             "code": 9997,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
     if is_null[4] == 1:
@@ -51,8 +47,7 @@ def login():
             "object": None,
             "msg": "账户已注销，禁止登录！",
             "code": 9996,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
     # 加密用户密码
@@ -63,8 +58,7 @@ def login():
             "object": None,
             "msg": "账号登录成功！",
             "code": 9000,
-            "result": True,
-            "status": "success"
+            "result": True
         }
         response = Response(json.dumps(data), content_type='application/json')
         # 处理uuid，加密
@@ -77,8 +71,7 @@ def login():
             "object": None,
             "msg": "账号或密码错误！",
             "code": 9995,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
 
@@ -100,8 +93,7 @@ def res_user():
             "object": None,
             "msg": "填写的用户信息校验不通过",
             "code": 9994,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
     # 查询用户是否存在
@@ -114,16 +106,14 @@ def res_user():
                 "object": None,
                 "msg": "当前用户已注销，不支持重新注册",
                 "code": 9993,
-                "result": False,
-                "status": "success"
+                "result": False
             }
             return Response(json.dumps(data), content_type='application/json')
         data = {
             "object": None,
             "msg": "当前用户已注册",
             "code": 9992,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
     # 注册
@@ -138,8 +128,7 @@ def res_user():
             "object": None,
             "msg": "账户注册成功",
             "code": 9991,
-            "result": True,
-            "status": "success"
+            "result": True
         }
         return Response(json.dumps(data), content_type='application/json')
     else:
@@ -147,7 +136,30 @@ def res_user():
             "object": None,
             "msg": "未知异常",
             "code": 9990,
-            "result": False,
-            "status": "success"
+            "result": False
         }
         return Response(json.dumps(data), content_type='application/json')
+
+
+@user.route('/logout', methods=['POST'])
+def logout():
+    username = request.cookies.get('username', None)
+    if username is None:
+        data = {
+            "object": None,
+            "msg": "用户未登录，无需退出！",
+            "code": 9899,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    data = {
+        "object": None,
+        "msg": "用户已退出！",
+        "code": 9898,
+        "result": True
+    }
+    response = Response(json.dumps(data), content_type='application/json')
+    response.delete_cookie('uuid')
+    response.delete_cookie('username')
+    return response
+

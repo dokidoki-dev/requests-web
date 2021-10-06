@@ -1,4 +1,3 @@
-from datetime import datetime
 from flask import Blueprint, request, Response
 import json
 import mysql.pymysql as pymysql
@@ -76,18 +75,18 @@ def login():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@user.route('/resigter', methods=["POST"])
+@user.route('/user_list/resigter', methods=["POST"])
 def res_user():
     # 只支持注册普通用户
     username = request.json.get('username', "").lower()
     password = request.json.get('password', "")
     phone = request.json.get('phone', "")
     pattern = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]{4,15}$')
-    username = pattern.search(username)
+    username = pattern.search(str(username))
     pattern = re.compile(r'^(?=.*\d)(?=.*[a-zA-Z]).{6,15}$')
-    password = pattern.search(password)
+    password = pattern.search(str(password))
     pattern = re.compile(r'^(13|14|15|17|18|19)[0-9]{9}$')
-    phone = pattern.search(phone)
+    phone = pattern.search(str(phone))
     if username is None or password is None or phone is None:
         data = {
             "object": None,
@@ -121,8 +120,8 @@ def res_user():
     # 生成随机密码盐
     salt = logic.hash_salt()
     password = hashlib.sha256((password[0] + salt).encode('utf-8')).hexdigest()
-    sql = "insert into user_info (u_name, u_password, u_salt, u_phone, create_time) values (%s, %s, %s, %s, %s)"
-    is_ok = s.create_one(sql, [(username[0]), password, salt, (phone[0]), datetime.now(), ])
+    sql = "insert into user_info (u_name, u_password, u_salt, u_phone, create_time) values (%s, %s, %s, %s, now())"
+    is_ok = s.create_one(sql, [(username[0]), password, salt, (phone[0]), ])
     if is_ok:
         data = {
             "object": None,
@@ -162,4 +161,86 @@ def logout():
     response.delete_cookie('uuid')
     response.delete_cookie('username')
     return response
+
+
+@user.route('/user_list', methods=['GET'])
+def user_list():
+    pass
+
+
+@user.route('/user_list/delete', methods=['POST'])
+def user_delete():
+    pass
+
+
+@user.route('/user_list/update', methods=['POST'])
+def user_update():
+    username = request.json.get('username', "")
+    password = request.json.get('password', "")
+    phone = request.json.get('phone', "")
+    is_active = request.json.get('is_active', 1)
+    pattern = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]{4,15}$')
+    username = pattern.search(str(username))
+    pattern = re.compile(r'^(?=.*\d)(?=.*[a-zA-Z]).{6,15}$')
+    password = pattern.search(str(password))
+    pattern = re.compile(r'^(13|14|15|17|18|19)[0-9]{9}$')
+    phone = pattern.search(str(phone))
+    pattern = re.compile(r'^[0-9]$')
+    is_active = pattern.search(str(is_active))
+    if username is None or password is None or phone is None or is_active is None:
+        data = {
+            "object": None,
+            "msg": "填写的用户信息校验不通过",
+            "code": 9699,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    # 处理密码
+    salt = logic.hash_salt()
+    password = hashlib.sha256((password[0] + salt).encode('utf-8')).hexdigest()
+    s = pymysql.SQLMysql()
+    sql_s = "update user_info set u_password=%s, u_phone=%s, is_active=%s, u_salt=%s, modfiy_time=now() where u_name=%s"
+    # 判断是否管理员
+    user_name = request.cookies.get('username')
+    select = "select is_admin from user_info where u_name=%s"
+    if s.query_one(select, [user_name, ])[0] == 1:
+        # 说明是管理员
+        ok = s.update_one(sql_s, [password, (phone[0]), (is_active[0]), salt, (username[0]), ])
+        if ok:
+            data = {
+                "object": None,
+                "msg": "修改成功",
+                "code": 9697,
+                "result": True
+            }
+            return Response(json.dumps(data), content_type='application/json')
+        else:
+            data = {
+                "object": None,
+                "msg": "未知异常",
+                "code": 9696,
+                "result": False
+            }
+            return Response(json.dumps(data), content_type='application/json')
+    # 普通用户更新自己信息
+    sql_p = "update user_info set u_password=%s, u_phone=%s, u_salt=%s, modfiy_time=now() where u_name=%s"
+    print(password, phone[0], salt,user_name)
+    ok = s.update_one(sql_p, [password, (phone[0]), salt, user_name, ])
+    if ok:
+        data = {
+            "object": None,
+            "msg": "修改成功",
+            "code": 9695,
+            "result": True
+        }
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        data = {
+            "object": None,
+            "msg": "未知异常",
+            "code": 9694,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
+
 

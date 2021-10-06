@@ -8,6 +8,8 @@ mysql_config = {
     "db": "request_web"
 }
 
+pymysql.connections.DEBUG = False  # 开启DEBUG
+
 
 class SQLMysql(object):
     def __init__(self):

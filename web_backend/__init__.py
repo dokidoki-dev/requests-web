@@ -9,7 +9,7 @@ from mysql.pymysql import SQLMysql
 app = Flask(__name__)
 
 
-lists = ['/login', '/resigter']
+lists = ['/login', '/logout', '/user_list/resigter']
 
 
 @app.before_request

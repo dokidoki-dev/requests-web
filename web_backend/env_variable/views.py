@@ -112,10 +112,11 @@ def env_var():
                     }
                     return Response(json.dumps(data), content_type='application/json')
     elif request.method == "POST":
-        variable = request.json.get('variable', "testing_env")
+        variable = request.json.get('variable', None)
         status = request.json.get('status', 0)
         context = request.json.get('context', None)
-        if context is None:
+        print(variable, context)
+        if context is None or variable is None:
             data = {
                 "object": None,
                 "msg": "内容校验不通过",
@@ -124,3 +125,4 @@ def env_var():
                 "status": "success"
             }
             return Response(json.dumps(data), content_type='application/json')
+        return '11111'

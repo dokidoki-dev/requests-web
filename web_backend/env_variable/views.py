@@ -112,6 +112,16 @@ def env_var():
                     }
                     return Response(json.dumps(data), content_type='application/json')
     elif request.method == "POST":
+        # 处理没有传参的问题
+        print(request.json)
+        if request.json is None:
+            data = {
+                "object": None,
+                "msg": "缺少参数",
+                "code": 10000,
+                "result": False
+            }
+            return Response(json.dumps(data), content_type='application/json')
         variable = request.json.get('variable', None)
         status = request.json.get('status', 0)
         context = request.json.get('context', None)

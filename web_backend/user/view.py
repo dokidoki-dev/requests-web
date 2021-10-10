@@ -10,6 +10,15 @@ user = Blueprint('user', __name__)
 
 @user.route('/login', methods=['POST'])
 def login():
+    # 处理没有传参的问题
+    if len(request.json) == 0:
+        data = {
+            "object": None,
+            "msg": "缺少参数",
+            "code": 10000,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
     username = request.json.get('username', None).lower()
     password = request.json.get('password', None)
     if username is None or password is None:
@@ -76,6 +85,15 @@ def login():
 
 @user.route('/user_list/resigter', methods=["POST"])
 def res_user():
+    # 处理没有传参的问题
+    if len(request.json) == 0:
+        data = {
+            "object": None,
+            "msg": "缺少参数",
+            "code": 10000,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
     # 只支持注册普通用户
     username = request.json.get('username', "").lower()
     password = request.json.get('password', "")
@@ -164,6 +182,15 @@ def logout():
 
 @user.route('/user_list', methods=['GET'])
 def user_list():
+    # 处理没有传参的问题
+    if len(request.args) == 0:
+        data = {
+            "object": None,
+            "msg": "缺少参数",
+            "code": 10000,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
     page = request.args.get('page', 0)
     limit = request.args.get('limit', 10)
     is_active = request.args.get('is_active', 1)
@@ -250,6 +277,15 @@ def user_list():
 
 @user.route('/user_list/delete', methods=['POST'])
 def user_delete():
+    # 处理没有传参的问题
+    if len(request.json) == 0:
+        data = {
+            "object": None,
+            "msg": "缺少参数",
+            "code": 10000,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
     username = request.json.get('username', "")
     pattern = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]{4,15}$')
     username = pattern.search(str(username))
@@ -317,6 +353,15 @@ def user_delete():
 
 @user.route('/user_list/update', methods=['POST'])
 def user_update():
+    # 处理没有传参的问题
+    if len(request.json) == 0:
+        data = {
+            "object": None,
+            "msg": "缺少参数",
+            "code": 10000,
+            "result": False
+        }
+        return Response(json.dumps(data), content_type='application/json')
     username = request.json.get('username', "")
     password = request.json.get('password', "")
     phone = request.json.get('phone', "")

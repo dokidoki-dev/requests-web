@@ -6,7 +6,7 @@ from mysql.pymysql import SQLMysql
 env_variable = Blueprint('env_variable', __name__)
 
 
-@env_variable.route('/env', methods=['GET'])
+@env_variable.route('/env/v_lists', methods=['GET'])
 def env_var():
     data = {
         "object": None,
@@ -20,7 +20,7 @@ def env_var():
     group_name = request.args.get('group_name', None)
     context = request.args.get('context', None)
     # 处理
-    pattern = re.compile(r'^[\d]{1,3}$')
+    pattern = re.compile(r'^[1-9][\d]{0,2}$')
     page = pattern.search(str(page))
     limit = pattern.search(str(limit))
     if page is None or limit is None:
@@ -29,8 +29,11 @@ def env_var():
         s = SQLMysql()
         s_sql = "select group_id from jk_vgroups where group_name=%s"
         s_all = "select group_id from jk_vgroups"
-        sql = "select v_id, v_name, v_data, group_id from jk_variable where is_delete=0 and group_id=%s and v_data like %s"
+        sql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s and v_data like %s"
+        s_csql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s"
         if group_name is None:
+            # 如果为空，返回全部内容，根据数量限制
+            # 查询是否存在环境变量分组
             group_ids = s.query_all(s_all)
             if not group_ids:
                 data["msg"] = "暂无数据"
@@ -38,8 +41,8 @@ def env_var():
                 data["result"] = True
                 return Response(json.dumps(data), content_type='application/json')
             else:
-                sql = "select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1"
-                l_n = s.query_all(sql)
+                a_sql = "select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1 limit %s, %s"
+                l_n = s.query_all(a_sql, [(int(page[0]) - 1), int(limit[0]), ])
                 if not l_n:
                     data["msg"] = "暂无数据"
                     data["code"] = 7993
@@ -61,12 +64,36 @@ def env_var():
                     data["result"] = True
                     return Response(json.dumps(data), content_type='application/json')
         else:
+            # 查询指定环境变量
+            # 查询是否存在指定环境变量分组
             group_id = s.query_one(s_sql, [str(group_name), ])
+            if context is None:
+                # 判断是否有环境变量
+                c_li = s.query_all(s_csql, [group_id, ])
+                if not c_li:
+                    data["msg"] = "暂无数据"
+                    data["code"] = 7196
+                    data["result"] = True
+                    return Response(json.dumps(data), content_type='application/json')
+                c_lists = []
+                for i in range(len(c_li)):
+                    v_id, v_name, v_data, group_id = c_li[i]
+                    c_lists.append({
+                        "id": v_id,
+                        "name": v_name,
+                        "data": v_data,
+                        "group_name": group_name
+                    })
+                data["object"] = c_lists
+                data["msg"] = "查询成功"
+                data["code"] = 7395
+                data["result"] = True
+                return Response(json.dumps(data), content_type='application/json')
             if group_id is None:
                 data["msg"] = "无相关结果"
                 data["code"] = 7997
                 return Response(json.dumps(data), content_type='application/json')
-            li = s.query_all(sql, [group_id, ('%' + context + '%'), ])
+            li = s.query_all(sql, [group_id, ('%' + str(context) + '%'), ])
             if not li:
                 data["msg"] = "暂无数据"
                 data["code"] = 7996
@@ -87,6 +114,47 @@ def env_var():
                 data["code"] = 7995
                 data["result"] = True
                 return Response(json.dumps(data), content_type='application/json')
+
+
+@env_variable.route('/env/g_lists', methods=['POST'])
+def env_g_lists():
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        return Response(json.dumps(data), content_type='application/json')
+    page = request.json.get("page", 1)
+    limit = request.json.get("limit", 10)
+    pattern = re.compile(r'^[1-9][\d]{0,2}$')
+    page = pattern.search(str(page))
+    limit = pattern.search(str(limit))
+    if page is None or limit is None:
+        data["msg"] = "参数非法"
+        data["code"] = 7577
+        return Response(json.dumps(data), content_type='application/json')
+    s = SQLMysql()
+    sql = "select group_name from jk_vgroups limit %s, %s"
+    li = s.query_all(sql, [(int(page[0]) - 1), int(limit[0]), ])
+    if not li:
+        data["msg"] = "暂无数据"
+        data["code"] = 7594
+        data["result"] = True
+        return Response(json.dumps(data), content_type='application/json')
+    list_n = []
+    for i in range(len(li)):
+        group_name = li[i][0]
+        list_n.append({
+            "group_name": group_name
+        })
+    data["object"] = list_n
+    data["msg"] = "查询成功"
+    data["code"] = 7593
+    data["result"] = True
+    return Response(json.dumps(data), content_type='application/json')
 
 
 @env_variable.route('/env/add_v', methods=['POST'])
@@ -339,3 +407,5 @@ def env_delete_g():
         data["msg"] = "未知异常"
         data["code"] = 7595
         return Response(json.dumps(data), content_type='application/json')
+
+

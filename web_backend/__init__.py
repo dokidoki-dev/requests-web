@@ -1,7 +1,7 @@
 import hashlib
-
 from flask import Flask, request, Response
 import settings
+from web_backend.env_variable.views import env_variable
 from web_backend.user.view import user
 import json
 from mysql.pymysql import SQLMysql
@@ -48,4 +48,5 @@ def create_app():
     app.config.from_object(settings.Development)
     # 注册蓝图
     app.register_blueprint(user)
+    app.register_blueprint(env_variable)
     return app

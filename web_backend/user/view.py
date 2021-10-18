@@ -324,3 +324,51 @@ def user_update():
         data["msg"] = "未知异常"
         data["code"] = 9694
         return Response(json.dumps(data), content_type='application/json')
+
+
+@user.route('/user/updatepd', methods=['POST'])
+def user_updatepd():
+    # 处理传参
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        return Response(json.dumps(data), content_type='application/json')
+    password_old = request.json.get('password_old', "")
+    password_new = request.json.get('password_new', "")
+    username = request.cookies.get('username', None)
+    pattern = re.compile(r'^(?=.*\d)(?=.*[a-zA-Z]).{6,15}$')
+    password_old = pattern.search(str(password_old))
+    password_new = pattern.search(str(password_new))
+    if password_old is None or password_new is None or not username:
+        data["msg"] = "参数非法"
+        data["code"] = 5999
+        return Response(json.dumps(data), content_type='application/json')
+    s = pymysql.SQLMysql()
+    sql_old = "select u_password, u_salt  from user_info where u_name=%s"
+    is_null = s.query_one(sql_old, [username, ])
+    # 比对密码
+    password_old = hashlib.sha256(password_old[0] + is_null[1]).hexdigest()
+    if password_old == is_null[0]:
+        # 处理新密码
+        salt = logic.hash_salt()
+        password_new = hashlib.sha256(password_new[0] + salt).hexdigest()
+        sql_new = "update user_info set u_password=%s, u_salt=%s where u_name=%s"
+        ok = s.update_one(sql_new, [password_new, salt, username, ])
+        if ok:
+            data["msg"] = "修改成功"
+            data["code"] = 5998
+            data["result"] = True
+            return Response(json.dumps(data), content_type='application/json')
+        else:
+            data["msg"] = "未知异常"
+            data["code"] = 5997
+            return Response(json.dumps(data), content_type='application/json')
+    else:
+        data["msg"] = "密码错误"
+        data["code"] = 5996
+        return Response(json.dumps(data), content_type='application/json')

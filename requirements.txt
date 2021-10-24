@@ -1,0 +1,6 @@
+flask
+pymysql
+flask_cors
+flask_script
+gunicorn
+gevent

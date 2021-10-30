@@ -2,7 +2,7 @@ import hashlib
 from flask import Flask, request, Response
 import settings
 from web_backend.env_variable.views import env_variable
-from web_backend.user.view import user
+from web_backend.user.views import user
 import json
 from mysql.pymysql import SQLMysql
 

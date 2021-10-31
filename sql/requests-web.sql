@@ -69,3 +69,6 @@ CREATE TABLE `jk_cgroups` (
   `modfiy_time` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`group_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+/* 创建默认管理员用户 */
+INSERT INTO `user_info` (`u_id`, `u_name`, `u_password`, `u_salt`, `u_phone`, `is_admin`, `is_active`, `is_delete`, `create_time`, `modfiy_time`, `delete_time`) VALUES (10000, 'admin', 'e797802b23766c12f0d02c9ab6c63081d66e95e29e28af286d854a4013296d3e', 'f86c03a19b124b848b2eb481542080b7', '17700000000', 1, 1, 0, '2021-10-31 19:18:13', NULL, NULL);

@@ -1,3 +1,4 @@
+/* 环境变量表 */
 CREATE TABLE `jk_variable` (
   `v_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '环境变量id',
   `v_name` varchar(255) NOT NULL COMMENT '变量名字',
@@ -10,7 +11,7 @@ CREATE TABLE `jk_variable` (
   KEY `group_id` (`group_id`) USING HASH COMMENT '所属分组id'
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4;
 
-
+/* 环境变量分组表 */
 CREATE TABLE `jk_vgroups` (
   `group_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '分组id',
   `group_name` varchar(255) NOT NULL COMMENT '分组名称',
@@ -20,7 +21,7 @@ CREATE TABLE `jk_vgroups` (
   PRIMARY KEY (`group_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4;
 
-
+/* 用户信息表 */
 CREATE TABLE `user_info` (
   `u_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户id',
   `u_name` varchar(255) NOT NULL COMMENT '用户名称',
@@ -35,3 +36,35 @@ CREATE TABLE `user_info` (
   `delete_time` datetime DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`u_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4;
+
+/* 测试用例表 */
+CREATE TABLE `jk_testcase` (
+  `case_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用例id',
+  `case_name` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '用例名称',
+  `method` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '请求方式 GET POST',
+  `path` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '请求路径',
+  `url` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '请求链接',
+  `status` int(2) NOT NULL DEFAULT '0' COMMENT '状态码 0 处于未执行队列   1处于执行中队列  默认0',
+  `sub_status` int(2) NOT NULL DEFAULT '0' COMMENT '子状态码 0 未执行  1执行中  2 执行成功  默认0',
+  `result_code` int(5) NOT NULL DEFAULT '0' COMMENT '本次用例执行结果状态码   200执行成功  201执行失败  0未执行',
+  `a_data` varchar(1000) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '断言数据',
+  `a_mode` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '断言类型  >  =  <   >=   <=',
+  `a_type` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '数据类型  例如  int   string  bool',
+  `is_rely_on` int(2) NOT NULL DEFAULT '0' COMMENT '是否依赖  0不依赖   1依赖 默认0',
+  `header` text COLLATE utf8mb4_bin NOT NULL COMMENT '请求头',
+  `request_data` text COLLATE utf8mb4_bin COMMENT '请求数据',
+  `result_data` text COLLATE utf8mb4_bin COMMENT '返回数据',
+  `group_id` int(11) NOT NULL COMMENT '所属分组id',
+  `create_time` datetime NOT NULL COMMENT '创建时间',
+  `modfiy_time` datetime DEFAULT NULL COMMENT '修改时间',
+  PRIMARY KEY (`case_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+/* 测试用例分组表 */
+CREATE TABLE `jk_cgroups` (
+  `group_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '测试用例分组id',
+  `group_name` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '测试用例分组名称',
+  `create_time` datetime NOT NULL COMMENT '创建时间',
+  `modfiy_time` datetime DEFAULT NULL COMMENT '修改时间',
+  PRIMARY KEY (`group_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

@@ -55,7 +55,7 @@ def t_addcases():
     assert_type = request.json.get("assert_type", None)
     is_rely = 1 if request.json.get("is_rely_on", 0) == 1 else 0
     request_data = request.json.get("request_data", {})
-    if method is None or url is None or header is None or request_data is None or group_name is None or case_name is None:
+    if method is None or url is None or header is None or request_data is None or not group_name or not case_name:
         data["msg"] = "参数非法"
         data["code"] = 20001
         return Response(json.dumps(data), content_type='application/json')

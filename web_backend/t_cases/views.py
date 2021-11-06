@@ -140,7 +140,8 @@ def t_addcases():
         }
     if is_assert == 1:
         ok = s.create_one(sql_ya,
-                          [case_name, method.upper(), path, str(url), is_assert, assert_data, assert_mode, assert_type, is_rely,
+                          [case_name, method.upper(), path, str(url), is_assert, assert_data, assert_mode, assert_type,
+                           is_rely,
                            str(header),
                            str(request_data), group_id, ])
         if ok:
@@ -153,7 +154,8 @@ def t_addcases():
             data["code"] = 20011
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
-        ok = s.create_one(sql_na, [case_name, method.upper(), path, str(url), is_assert, is_rely, str(header), str(request_data), group_id, ])
+        ok = s.create_one(sql_na, [case_name, method.upper(), path, str(url), is_assert, is_rely, str(header),
+                                   str(request_data), group_id, ])
         if ok:
             data["msg"] = "添加成功"
             data["code"] = 20010
@@ -286,26 +288,64 @@ def t_updatecases():
             "data": url[0]
         }
     if is_assert == 1:
-        ok = s.update_one(sql_ya, [case_name, method.upper(), path, str(url), is_assert, assert_data, assert_mode, assert_type, is_rely, str(header), str(request_data), group_id, case_id[0], ])
+        ok = s.update_one(sql_ya,
+                          [case_name, method.upper(), path, str(url), is_assert, assert_data, assert_mode, assert_type,
+                           is_rely, str(header), str(request_data), group_id, case_id[0], ])
         if ok:
             data["msg"] = "修改成功"
-            data["code"] = 20010
+            data["code"] = 20111
             data["result"] = True
             return Response(json.dumps(data), content_type='application/json')
         else:
             data["msg"] = "未知异常"
-            data["code"] = 20011
+            data["code"] = 20112
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
-        ok = s.update_one(sql_na, [case_name, method.upper(), path, str(url), is_assert, is_rely, str(header), str(request_data), group_id, case_id[0], ])
+        ok = s.update_one(sql_na, [case_name, method.upper(), path, str(url), is_assert, is_rely, str(header),
+                                   str(request_data), group_id, case_id[0], ])
         if ok:
             data["msg"] = "修改成功"
-            data["code"] = 20010
+            data["code"] = 20113
             data["result"] = True
             return Response(json.dumps(data), content_type='application/json')
         else:
             data["msg"] = "未知异常"
-            data["code"] = 20011
+            data["code"] = 20114
             return Response(json.dumps(data), content_type='application/json')
     return "未知异常"
 
+
+@test_cases.route("/t_delete", methods=["POST"])
+def t_delete():
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        return Response(json.dumps(data), content_type='application/json')
+    case_id = request.json.get("case_id", None)
+    if not case_id:
+        data["msg"] = "参数非法"
+        data["code"] = 20200
+        return Response(json.dumps(data), content_type='application/json')
+    s = SQLMysql()
+    sql_s = "select count(*) from jk_testcase where case_id=%s"
+    num = s.query_one(sql_s, [case_id, ])
+    if num[0] == 0:
+        data["msg"] = "数据不存在"
+        data["code"] = 20201
+        return Response(json.dumps(data), content_type='application/json')
+    sql_d = "delete from jk_testcase where case_id=%s"
+    ok = s.update_one(sql_d, [case_id, ])
+    if ok:
+        data["msg"] = "删除成功"
+        data["code"] = 20202
+        data["result"] = True
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        data["msg"] = "未知异常"
+        data["code"] = 20203
+        return Response(json.dumps(data), content_type='application/json')

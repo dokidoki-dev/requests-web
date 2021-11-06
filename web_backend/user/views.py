@@ -142,15 +142,8 @@ def user_list():
         "code": 9399,
         "result": False
     }
-    page = request.args.get('page', 0)
-    limit = request.args.get('limit', 10)
-    is_active = request.args.get('is_active', 1)
-    pattern = re.compile(r'^[0-9]{1,50}$')
-    page = pattern.search(str(page))
-    limit = pattern.search(str(limit))
-    is_active = pattern.search(str(is_active))
-    if page is None or limit is None or is_active is None:
-        return Response(json.dumps(data), content_type='application/json')
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
     # 判断是否管理员
     u_name = request.cookies.get('username')
     select = "select is_admin from user_info where u_name=%s and is_delete=0 and is_active=1"
@@ -161,7 +154,7 @@ def user_list():
         return Response(json.dumps(data), content_type='application/json')
     if is_null[0] == 1:
         sql = "select u_name, u_phone, is_active from user_info where is_delete=0 limit %s, %s"
-        list_n = s.query_all(sql, [int(page[0]), int(limit[0]), ])
+        list_n = s.query_all(sql, [(page - 1), limit, ])
         if not list_n:
             data["is_admin"] = True
             data["code"] = 9199

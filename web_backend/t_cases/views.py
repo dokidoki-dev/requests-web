@@ -55,12 +55,13 @@ def t_addcases():
     assert_type = request.json.get("assert_type", None)
     is_rely = 1 if request.json.get("is_rely_on", 0) == 1 else 0
     request_data = request.json.get("request_data", {})
-    if header is None or url is None:
+    if not header or not url:
         if not env_url or not env_header:
             data["msg"] = "参数非法"
             data["code"] = 20001
             return Response(json.dumps(data), content_type='application/json')
         elif env_url and env_header:
+            # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
             sql = "select v_id from jk_variable from where v_name=%s"
             is_null01 = s.query_one(sql, [env_url, ])
@@ -73,7 +74,7 @@ def t_addcases():
             data["msg"] = "参数非法"
             data["code"] = 20001
             return Response(json.dumps(data), content_type='application/json')
-    if method is None or request_data is None or not group_name or not case_name:
+    if not method or not request_data or not group_name or not case_name:
         data["msg"] = "参数非法"
         data["code"] = 20001
         return Response(json.dumps(data), content_type='application/json')
@@ -349,3 +350,63 @@ def t_delete():
         data["msg"] = "未知异常"
         data["code"] = 20203
         return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route("/t_lists", methods=["GET"])
+def t_lists():
+    '''
+    支持使用用例名字、用例id、用例分组查询列表
+    :return:
+    '''
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.args:
+        return Response(json.dumps(data), content_type='application/json')
+    case_name = None if request.args.get("case_name", None) == "" else request.args.get("case_name", None)
+    group_name = None if request.args.get("group_name", None) == "" else request.args.get("group_name", None)
+    case_id = request.args.get("case_id", None)
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    s = SQLMysql()
+    if group_name:
+        sql = "select group_id from jk_cgroups where group_name=%s"
+        group_id = s.query_one(sql, [group_name, ])
+        if group_id is None:
+            data["msg"] = "用例分组不存在"
+            data["code"] = 20300
+            return Response(json.dumps(data), content_type='application/json')
+        else:
+            group_name = group_id[0]
+    sql = "select t.case_id, t.case_name, t.method, t.path, t.url, t.status, t.is_assert, t.is_rely_on, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s or t.case_id=%s or t.case_name like %s limit %s, %s"
+    li = s.query_all(sql, [group_name, case_id, ('%' + str(case_name) + '%'), (page - 1), limit, ])
+    if not li:
+        data["msg"] = "暂无数据"
+        data["code"] = 20301
+        data["result"] = True
+        return Response(json.dumps(data), content_type='application/json')
+    list_all =[]
+    for i in range(len(li)):
+        case_id, case_name, method, path, url, status, is_assert, is_rely_on, header, request_data, group_name = li[i]
+        list_all.append({
+            "case_id": case_id,
+            "case_name": case_name,
+            "method": method,
+            "path": path,
+            "url": url,
+            "status": status,
+            "is_assert": is_assert,
+            "is_rely_on": is_rely_on,
+            "header": header,
+            "request_data": request_data,
+            "group_name": group_name
+        })
+    data["object"] = list_all
+    data["msg"] = "查询成功"
+    data["code"] = 20302
+    data["result"] = True
+    return Response(json.dumps(data), content_type='application/json')

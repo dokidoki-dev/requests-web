@@ -470,3 +470,48 @@ def t_lists_one():
     data["msg"] = "查询成功"
     data["code"] = 20402
     return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route("/t_result", methods=["POST"])
+def t_result():
+    '''
+    用来查看单个用例执行结果
+    :return:
+    '''
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        return Response(json.dumps(data), content_type='application/json')
+    case_id = request.json.get("case_id", None)
+    if not case_id:
+        data["msg"] = "参数非法"
+        data["code"] = 20500
+        return Response(json.dumps(data), content_type='application/json')
+    sql = "select t.case_id, t.case_name, t.status, t.sub_status, t.request_data, t.result_code, t.result_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id=%s"
+    s = SQLMysql()
+    li = s.query_one(sql, [case_id, ])
+    if li is None:
+        data["msg"] = "用例数据不存在"
+        data["code"] = 20501
+        return Response(json.dumps(data), content_type='application/json')
+    # 解构
+    case_id, case_name, status, sub_status, request_data, result_code, result_data, group_name = li
+    list_one = {
+        "case_id": case_id,
+        "case_name": case_name,
+        "status": status,
+        "sub_status": sub_status,
+        "request_data": request_data,
+        "result_code": result_code,
+        "result_data": result_data,
+        "group_name": group_name
+    }
+    data["object"] = list_one
+    data["msg"] = "查询成功"
+    data["code"] = 20502
+    return Response(json.dumps(data), content_type='application/json')

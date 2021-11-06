@@ -1,10 +1,10 @@
 import pymysql
 
 mysql_config = {
-    "host": "127.0.0.1",
+    "host": "192.168.0.109",
     "post": 3306,
     "user": "root",
-    "passwd": "shenyongfu",
+    "passwd": "123456",
     "db": "request_web"
 }
 

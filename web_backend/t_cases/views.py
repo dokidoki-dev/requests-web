@@ -255,19 +255,24 @@ def t_updatecases():
         data["code"] = 20108
         return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
-    sql_q = "select case_id from jk_testcase where case_id=%s"
+    sql_q = "select status from jk_testcase where case_id=%s"
     sql_na = "update jk_testcase set case_name=%s, method=%s, path=%s, url=%s, is_assert=%s, is_rely_on=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
     sql_ya = "update jk_testcase set case_name=%s, method=%s, path=%s, url=%s, is_assert=%s, a_data=%s, a_mode=%s, a_type=%s, is_rely_on=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
     sql_s = "select group_id from jk_cgroups where group_name=%s"
-    case_id = s.query_one(sql_q, [case_id, ])
-    if case_id is None:
+    pd = s.query_one(sql_q, [case_id, ])
+    if pd is None:
         data["msg"] = "参数非法"
         data["code"] = 20109
+        return Response(json.dumps(data), content_type='application/json')
+    # 判断当前用例是否处于运行中，运行中的用例不允许更新
+    if pd[0] == 1:
+        data["msg"] = "用例正在执行中，不允许更新"
+        data["code"] = 20110
         return Response(json.dumps(data), content_type='application/json')
     group_id = s.query_one(sql_s, [group_name, ])
     if group_id is None:
         data["msg"] = "用例分组不存在"
-        data["code"] = 20110
+        data["code"] = 20111
         return Response(json.dumps(data), content_type='application/json')
     group_id = group_id[0]
     if not header or not url[0]:
@@ -294,24 +299,24 @@ def t_updatecases():
                            is_rely, str(header), str(request_data), group_id, case_id[0], ])
         if ok:
             data["msg"] = "修改成功"
-            data["code"] = 20111
+            data["code"] = 20112
             data["result"] = True
             return Response(json.dumps(data), content_type='application/json')
         else:
             data["msg"] = "未知异常"
-            data["code"] = 20112
+            data["code"] = 20113
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
         ok = s.update_one(sql_na, [case_name, method.upper(), path, str(url), is_assert, is_rely, str(header),
                                    str(request_data), group_id, case_id[0], ])
         if ok:
             data["msg"] = "修改成功"
-            data["code"] = 20113
+            data["code"] = 20114
             data["result"] = True
             return Response(json.dumps(data), content_type='application/json')
         else:
             data["msg"] = "未知异常"
-            data["code"] = 20114
+            data["code"] = 20115
             return Response(json.dumps(data), content_type='application/json')
     return "未知异常"
 
@@ -333,22 +338,27 @@ def t_delete():
         data["code"] = 20200
         return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
-    sql_s = "select count(*) from jk_testcase where case_id=%s"
+    sql_s = "select status from jk_testcase where case_id=%s"
     num = s.query_one(sql_s, [case_id, ])
-    if num[0] == 0:
+    if num is None:
         data["msg"] = "数据不存在"
         data["code"] = 20201
+        return Response(json.dumps(data), content_type='application/json')
+    # 检查当前用例是否处于运行队列中，用例正在处于运行中不允许删除
+    if num[0] == 1:
+        data["msg"] = "用例正在执行中，不允许删除"
+        data["code"] = 20202
         return Response(json.dumps(data), content_type='application/json')
     sql_d = "delete from jk_testcase where case_id=%s"
     ok = s.update_one(sql_d, [case_id, ])
     if ok:
         data["msg"] = "删除成功"
-        data["code"] = 20202
+        data["code"] = 20203
         data["result"] = True
         return Response(json.dumps(data), content_type='application/json')
     else:
         data["msg"] = "未知异常"
-        data["code"] = 20203
+        data["code"] = 20204
         return Response(json.dumps(data), content_type='application/json')
 
 
@@ -409,4 +419,54 @@ def t_lists():
     data["msg"] = "查询成功"
     data["code"] = 20302
     data["result"] = True
+    return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route("/t_lists_one", methods=["POST"])
+def t_lists_one():
+    '''
+        只支持用例cses_id来查询，本接口用来使用查看单个用例的所有信息，用来更新编辑时使用
+        :return:
+        '''
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        return Response(json.dumps(data), content_type='application/json')
+    case_id = request.json.get("case_id", None)
+    if not case_id:
+        data["msg"] = "参数非法"
+        data["code"] = 20400
+        return Response(json.dumps(data), content_type='application/json')
+    sql = "select t.case_id, t.case_name, t.method, t.path, t.url, t.is_assert, t.a_data, t.a_mode, t.a_type, t.is_rely_on, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id=%s"
+    s = SQLMysql()
+    li = s.query_one(sql, [case_id, ])
+    if li is None:
+        data["msg"] = "用例信息不存在"
+        data["code"] = 20401
+        return Response(json.dumps(data), content_type='application/json')
+    # 解构数据
+    case_id, case_name, method, path, url, is_assert, a_data, a_mode, a_type, is_rely_on, header, request_data, group_name = li
+    list_one = {
+        "case_id": case_id,
+        "case_name": case_name,
+        "method": method,
+        "path": path,
+        "url": url,
+        "is_assert": is_assert,
+        "a_data": a_data,
+        "a_mode": a_mode,
+        "a_type": a_type,
+        "is_rely_on": is_rely_on,
+        "header": header,
+        "request_data": request_data,
+        "group_name": group_name
+    }
+    data["object"] = list_one
+    data["msg"] = "查询成功"
+    data["code"] = 20402
     return Response(json.dumps(data), content_type='application/json')

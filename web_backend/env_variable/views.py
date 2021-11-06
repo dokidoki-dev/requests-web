@@ -15,108 +15,101 @@ def env_var():
         "result": False,
         "status": "success"
     }
-    page = request.args.get('page', 1)
-    limit = request.args.get('limit', 10)
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
     group_name = request.args.get('group_name', None)
     context = request.args.get('context', None)
-    # 处理
-    pattern = re.compile(r'^[1-9][\d]{0,2}$')
-    page = pattern.search(str(page))
-    limit = pattern.search(str(limit))
-    if page is None or limit is None:
-        return Response(json.dumps(data), content_type='application/json')
-    else:
-        s = SQLMysql()
-        s_sql = "select group_id from jk_vgroups where group_name=%s"
-        s_all = "select group_id from jk_vgroups"
-        sql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s and v_data like %s"
-        s_csql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s"
-        if group_name is None:
-            # 如果为空，返回全部内容，根据数量限制
-            # 查询是否存在环境变量分组
-            group_ids = s.query_all(s_all)
-            if not group_ids:
-                data["msg"] = "暂无数据"
-                data["code"] = 7994
-                data["result"] = True
-                return Response(json.dumps(data), content_type='application/json')
-            else:
-                a_sql = "select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1 limit %s, %s"
-                l_n = s.query_all(a_sql, [(int(page[0]) - 1), int(limit[0]), ])
-                if not l_n:
-                    data["msg"] = "暂无数据"
-                    data["code"] = 7993
-                    data["result"] = True
-                    return Response(json.dumps(data), content_type='application/json')
-                else:
-                    lists_all = []
-                    for i in range(len(l_n)):
-                        v_id, v_name, v_data, group_name = l_n[i]
-                        lists_all.append({
-                            "id": v_id,
-                            "name": v_name,
-                            "data": v_data,
-                            "group_name": group_name
-                        })
-                    data["object"] = lists_all
-                    data["msg"] = "查询成功"
-                    data["code"] = 7992
-                    data["result"] = True
-                    return Response(json.dumps(data), content_type='application/json')
+    s = SQLMysql()
+    s_sql = "select group_id from jk_vgroups where group_name=%s"
+    s_all = "select group_id from jk_vgroups"
+    sql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s and v_data like %s"
+    s_csql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s"
+    if group_name is None:
+        # 如果为空，返回全部内容，根据数量限制
+        # 查询是否存在环境变量分组
+        group_ids = s.query_all(s_all)
+        if not group_ids:
+            data["msg"] = "暂无数据"
+            data["code"] = 7994
+            data["result"] = True
+            return Response(json.dumps(data), content_type='application/json')
         else:
-            # 查询指定环境变量
-            # 查询是否存在指定环境变量分组
-            group_id = s.query_one(s_sql, [str(group_name), ])
-            if context is None:
-                # 判断是否有环境变量
-                c_li = s.query_all(s_csql, [group_id, ])
-                if not c_li:
-                    data["msg"] = "暂无数据"
-                    data["code"] = 7196
-                    data["result"] = True
-                    return Response(json.dumps(data), content_type='application/json')
-                c_lists = []
-                for i in range(len(c_li)):
-                    v_id, v_name, v_data, group_id = c_li[i]
-                    c_lists.append({
-                        "id": v_id,
-                        "name": v_name,
-                        "data": v_data,
-                        "group_name": group_name
-                    })
-                data["object"] = c_lists
-                data["msg"] = "查询成功"
-                data["code"] = 7395
-                data["result"] = True
-                return Response(json.dumps(data), content_type='application/json')
-            if group_id is None:
-                data["msg"] = "无相关结果"
-                data["code"] = 7997
-                return Response(json.dumps(data), content_type='application/json')
-            li = s.query_all(sql, [group_id, ('%' + str(context) + '%'), ])
-            if not li:
+            a_sql = "select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1 limit %s, %s"
+            l_n = s.query_all(a_sql, [(page - 1), limit, ])
+            if not l_n:
                 data["msg"] = "暂无数据"
-                data["code"] = 7996
+                data["code"] = 7993
                 data["result"] = True
                 return Response(json.dumps(data), content_type='application/json')
             else:
-                list_s = []
-                for i in range(len(li)):
-                    v_id, v_name, v_data, group_id = li[i]
-                    list_s.append({
+                lists_all = []
+                for i in range(len(l_n)):
+                    v_id, v_name, v_data, group_name = l_n[i]
+                    lists_all.append({
                         "id": v_id,
                         "name": v_name,
                         "data": v_data,
                         "group_name": group_name
                     })
-                data["object"] = list_s
+                data["object"] = lists_all
                 data["msg"] = "查询成功"
-                data["code"] = 7995
+                data["code"] = 7992
                 data["result"] = True
                 return Response(json.dumps(data), content_type='application/json')
+    else:
+        # 查询指定环境变量
+        # 查询是否存在指定环境变量分组
+        group_id = s.query_one(s_sql, [str(group_name), ])
+        if context is None:
+            # 判断是否有环境变量
+            c_li = s.query_all(s_csql, [group_id, ])
+            if not c_li:
+                data["msg"] = "暂无数据"
+                data["code"] = 7196
+                data["result"] = True
+                return Response(json.dumps(data), content_type='application/json')
+            c_lists = []
+            for i in range(len(c_li)):
+                v_id, v_name, v_data, group_id = c_li[i]
+                c_lists.append({
+                    "id": v_id,
+                    "name": v_name,
+                    "data": v_data,
+                    "group_name": group_name
+                })
+            data["object"] = c_lists
+            data["msg"] = "查询成功"
+            data["code"] = 7395
+            data["result"] = True
+            return Response(json.dumps(data), content_type='application/json')
+        if group_id is None:
+            data["msg"] = "无相关结果"
+            data["code"] = 7997
+            return Response(json.dumps(data), content_type='application/json')
+        li = s.query_all(sql, [group_id, ('%' + str(context) + '%'), ])
+        if not li:
+            data["msg"] = "暂无数据"
+            data["code"] = 7996
+            data["result"] = True
+            return Response(json.dumps(data), content_type='application/json')
+        else:
+            list_s = []
+            for i in range(len(li)):
+                v_id, v_name, v_data, group_id = li[i]
+                list_s.append({
+                    "id": v_id,
+                    "name": v_name,
+                    "data": v_data,
+                    "group_name": group_name
+                })
+            data["object"] = list_s
+            data["msg"] = "查询成功"
+            data["code"] = 7995
+            data["result"] = True
+            return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/g_lists', methods=['POST'])
+@env_variable.route('/env/g_lists', methods=['GET'])
 def env_g_lists():
     data = {
         "object": None,
@@ -127,18 +120,11 @@ def env_g_lists():
     # 处理没有传参的问题
     if not request.json:
         return Response(json.dumps(data), content_type='application/json')
-    page = request.json.get("page", 1)
-    limit = request.json.get("limit", 10)
-    pattern = re.compile(r'^[1-9][\d]{0,2}$')
-    page = pattern.search(str(page))
-    limit = pattern.search(str(limit))
-    if page is None or limit is None:
-        data["msg"] = "参数非法"
-        data["code"] = 7577
-        return Response(json.dumps(data), content_type='application/json')
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
     s = SQLMysql()
     sql = "select group_name from jk_vgroups limit %s, %s"
-    li = s.query_all(sql, [(int(page[0]) - 1), int(limit[0]), ])
+    li = s.query_all(sql, [(page - 1), limit, ])
     if not li:
         data["msg"] = "暂无数据"
         data["code"] = 7594

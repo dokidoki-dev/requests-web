@@ -3,6 +3,7 @@ from flask import Flask, request, Response
 import settings
 from web_backend.env_variable.views import env_variable
 from web_backend.user.views import user
+from web_backend.t_cases.views import test_cases
 import json
 from mysql.pymysql import SQLMysql
 
@@ -49,4 +50,5 @@ def create_app():
     # 注册蓝图
     app.register_blueprint(user)
     app.register_blueprint(env_variable)
+    app.register_blueprint(test_cases)
     return app

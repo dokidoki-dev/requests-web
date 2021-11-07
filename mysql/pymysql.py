@@ -1,4 +1,7 @@
 import pymysql
+from web_backend.logger_text.logger_text import log
+
+logger = log()
 
 mysql_config = {
     "host": "192.168.0.109",
@@ -41,7 +44,7 @@ class SQLMysql(object):
         except Exception as e:
             # 异常回滚
             self.conn.rollback()
-            print(e)
+            logger.error(e)
             return False
 
     def update_one(self, sql, args=None):
@@ -51,5 +54,5 @@ class SQLMysql(object):
             return True
         except Exception as e:
             self.conn.rollback()
-            print(e)
+            logger.error(e)
             return False

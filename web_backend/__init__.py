@@ -7,6 +7,7 @@ from web_backend.t_cases.views import test_cases
 import json
 from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
+from web_backend.error_text.error_text import APIException, ServerError, HTTPException
 
 app = Flask(__name__)
 
@@ -54,6 +55,29 @@ def interceptor():
         data["code"] = 9202
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
+
+
+# 全局错误AOP处理
+@app.errorhandler(Exception)
+def framework_error(e):
+    # 判断异常是不是HTTPException
+    if isinstance(e, HTTPException):
+        logger.error(e)
+        code = e.code
+        # 获取具体的响应错误信息
+        msg = str(e.code) + " " + e.name
+        error_code = 9999
+        return APIException(code=code, msg=msg, error_code=error_code)
+    # 异常肯定是Exception
+    else:
+        # 如果是调试模式,则返回e的具体异常信息
+        # 将异常信息写入日志
+        if app.config["DEBUG"]:
+            logger.error(e)
+            return e
+        else:
+            logger.error(e)
+            return ServerError()
 
 
 def create_app():

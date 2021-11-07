@@ -6,11 +6,14 @@ from web_backend.user.views import user
 from web_backend.t_cases.views import test_cases
 import json
 from mysql.pymysql import SQLMysql
+from web_backend.logger_text.logger_text import log
 
 app = Flask(__name__)
 
 
 lists = ['/login']
+# 日志处理
+logger = log()
 
 
 @app.before_request
@@ -25,22 +28,31 @@ def interceptor():
     url = request.path
     for i in range(len(lists)):
         if lists[i] == url:
+            logger.info("处于拦截白名单，放行")
             return
     uuid = request.cookies.get('uuid', None)
     username = request.cookies.get('username', None)
+    logger.debug("uuid: " + uuid + " username: " + username)
+    logger.debug("cookies: " + str(request.cookies))
     if uuid is None or username is None:
+        logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 判断用户数据是否正确
     s = SQLMysql()
     # 此处查询限制不要轻易改动，用户以及其他模块，依赖此处用户的实时状态，改动后要注意用户模块和其他模块查询结果的影响
     sql = "select u_id, u_password, u_salt from user_info where u_name=%s and is_active=1 and is_delete=0"
+    logger.debug("select u_id, u_password, u_salt from user_info where u_name={} and is_active=1 and is_delete=0".format(username))
     is_null = s.query_one(sql, [username, ])
+    logger.debug("查询信息：" + str(is_null))
     if is_null is None:
         data["code"] = 9201
+        logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     user_uuid = hashlib.md5((str(is_null[0]) + is_null[2]).encode('utf-8')).hexdigest()
+    logger.debug("拦截器信息比对：" + "user_uuid：" + user_uuid + " uuid：" + uuid + " 比对结果：" + user_uuid != uuid)
     if user_uuid != uuid:
         data["code"] = 9202
+        logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
 
 

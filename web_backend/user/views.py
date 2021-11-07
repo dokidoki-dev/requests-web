@@ -60,10 +60,14 @@ def login():
         data["code"] = 9000
         data["msg"] = "账号登录成功！"
         data["result"] = True
+        # header = {
+        #     "Access-Control-Allow-Origin": "*",
+        #     "Access-Control-Allow-Credentials": "true"
+        # }
         response = Response(json.dumps(data), content_type='application/json')
         # 处理uuid，加密
         uuid = hashlib.md5((str(is_null[5]) + is_null[2]).encode('utf-8')).hexdigest()
-        response.set_cookie('uuid', uuid, max_age=86400, domain='127.0.0.1')
+        response.set_cookie('uuid', uuid, max_age=86400)
         response.set_cookie('username', is_null[0])
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))

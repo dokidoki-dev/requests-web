@@ -32,7 +32,7 @@ def interceptor():
             return
     uuid = request.cookies.get('uuid', None)
     username = request.cookies.get('username', None)
-    logger.debug("uuid: " + uuid + " username: " + username)
+    logger.debug("uuid: " + str(uuid) + " username: " + str(username))
     logger.debug("cookies: " + str(request.cookies))
     if uuid is None or username is None:
         logger.info("返回信息" + str(data))

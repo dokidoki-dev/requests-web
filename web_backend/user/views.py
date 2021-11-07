@@ -34,7 +34,7 @@ def login():
     # 查询用户是否存在
     s = pymysql.SQLMysql()
     sql = "select u_name, u_password, u_salt, is_active, is_delete, u_id from user_info where u_name = %s"
-    logger.debug("select u_name, u_password, u_salt, is_active, is_delete, u_id from user_info where u_name=%s" % username)
+    logger.debug("select u_name, u_password, u_salt, is_active, is_delete, u_id from user_info where u_name={}".format(username))
     is_null = s.query_one(sql, [username, ])
     logger.debug("查询用户信息：" + str(is_null))
     if is_null is None:
@@ -110,7 +110,7 @@ def res_user():
     # 查询用户是否存在
     s = pymysql.SQLMysql()
     sql = "select u_name, u_password, u_salt, is_delete from user_info where u_name = %s"
-    logger.debug("select u_name, u_password, u_salt, is_delete from user_info where u_name = %s" % username[0])
+    logger.debug("select u_name, u_password, u_salt, is_delete from user_info where u_name = {}".format(username[0]))
     is_null = s.query_one(sql, [username[0], ])
     logger.debug("查询信息：" + str(is_null))
     if is_null:
@@ -192,7 +192,7 @@ def user_list():
         sql = "select u_name, u_phone, is_active from user_info where is_delete=0 limit %s, %s"
         logger.debug("select u_name, u_phone, is_active from user_info where is_delete=0 limit {}, {}".format((page-1), limit))
         list_n = s.query_all(sql, [(page - 1), limit, ])
-        logger.debug("查询结果：" + str(list_n))
+        logger.debug("查询信息：" + str(list_n))
         if not list_n:
             # 理论上不会出现此种情况
             data["is_admin"] = True
@@ -221,6 +221,7 @@ def user_list():
         sql = "select u_name, u_phone, is_active from user_info where is_delete=0 and is_active=1 and u_name=%s"
         logger.debug("select u_name, u_phone, is_active from user_info where is_delete=0 and is_active=1 and u_name={}".format(u_name))
         list_p = s.query_one(sql, [u_name, ])
+        logger.debug("查询信息：" + str(list_p))
         if list_p is None:
             # 理论上不会出现此种情况
             data["is_admin"] = False
@@ -272,7 +273,7 @@ def user_delete():
     sl = "select username from user_info where u_name=%s and is_delete=0"
     logger.debug("select username from user_info where u_name={} and is_delete=0".format(username[0]))
     is_null = s.query_one(sl, [username[0], ])
-    logger.debug("查询结果：" + str(is_null))
+    logger.debug("查询信息：" + str(is_null))
     if is_null is None:
         data["msg"] = "用户删除失败"
         data["code"] = 9598
@@ -284,6 +285,7 @@ def user_delete():
     sql = "update user_info set is_delete=1, delete_time=now() where u_name=%s and is_delete=0"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0".format(user_name))
     ok = s.query_one(select, [user_name, ])
+    logger.debug("查询信息：" + str(ok))
     if ok is None:
         data["msg"] = "参数非法"
         data["code"] = 9597
@@ -351,7 +353,7 @@ def user_update():
     select = "select is_admin from user_info where u_name=%s and is_delete=0"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0".format(user_name))
     is_null = s.query_one(select, [user_name, ])
-    logger.debug("查询结果：" + str(is_null))
+    logger.debug("查询信息：" + str(is_null))
     if is_null is None:
         data["msg"] = "参数非法"
         data["code"] = 9099
@@ -418,7 +420,7 @@ def user_updatepd():
     sql_old = "select u_password, u_salt  from user_info where u_name=%s"
     logger.debug("select u_password, u_salt  from user_info where u_name={}".format(username))
     is_null = s.query_one(sql_old, [username, ])
-    logger.debug("查询结果：" + str(is_null))
+    logger.debug("查询信息：" + str(is_null))
     # 比对密码
     password_old = hashlib.sha256(password_old[0] + is_null[1]).hexdigest()
     logger.debug("校验密码：" + "用户输入的旧密码：" + str(password_old) + " 数据库中的旧密码：" + str(is_null[0]) + " 校验结果：" + password_old == is_null[0])

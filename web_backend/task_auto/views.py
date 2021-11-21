@@ -60,10 +60,10 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         lists = {
+            "case_id": case_id,
             "method": method,
             "path": path,
             "url": url,
-            "status": status,
             "is_assert": is_assert,
             "a_data": a_data,
             "a_mode": a_mode,
@@ -102,6 +102,14 @@ def task_add():
             lists["header"] = ok[0]
         elif header["mode"] == "un_env":
             lists["header"] = header["data"]
+        sql_status = "update jk_testcase set status=1 where case_id=%s"
+        logger.debug("update jk_testcase set status=1 where case_id={}".format(case_id))
+        ok = s.update_one(sql_status, [case_id, ])
+        if not ok:
+            data["code"] = 99999
+            data["msg"] = "未知错误"
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
         # 放入队列
         q.put((task, lists))
         data["code"] = 30009
@@ -120,8 +128,8 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         # 查询用例组下的所有用例
-        sql_s = "select method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where group_id=%s"
-        logger.debug("select method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where group_id={}".format(li[0]))
+        sql_s = "select case_id, method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where group_id=%s"
+        logger.debug("select case_id, method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where group_id={}".format(li[0]))
         lists = s.query_all(sql_s, [li[0], ])
         logger.debug(lists)
         if not lists:
@@ -131,12 +139,12 @@ def task_add():
             return Response(json.dumps(data), content_type='application/json')
         all = []
         for i in range(len(lists)):
-            method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data = lists[i]
+            case_id, method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data = lists[i]
             list_all = {
+                "case_id": case_id,
                 "method": method,
                 "path": path,
                 "url": url,
-                "status": status,
                 "is_assert": is_assert,
                 "a_data": a_data,
                 "a_mode": a_mode,
@@ -181,6 +189,14 @@ def task_add():
                 list_all["header"] = ok[0]
             elif header["mode"] == "un_env":
                 list_all["header"] = header["data"]
+            sql_status = "update jk_testcase set status=1 where case_id=%s"
+            logger.debug("update jk_testcase set status=1 where case_id={}".format(case_id))
+            ok = s.update_one(sql_status, [case_id, ])
+            if not ok:
+                data["code"] = 99999
+                data["msg"] = "未知错误"
+                logger.info("返回信息" + str(data))
+                return Response(json.dumps(data), content_type='application/json')
             all.append((task, list_all))
         #  放入队列
         for i in range(len(all)):

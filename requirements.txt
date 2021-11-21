@@ -6,3 +6,4 @@ gunicorn
 gevent
 loguru~=0.5.3
 Werkzeug~=2.0.1
+requests~=2.25.1

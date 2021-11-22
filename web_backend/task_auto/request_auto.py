@@ -169,6 +169,9 @@ def eval_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
     """
     result = False
     items = "item"
+    # 处理数组里的数字类型格式
+    for i in range(num):
+        a_data_list[i] = int(a_data_list[i]) if a_data_list[i].isdigit() else a_data_list[i]
     # 拼接字符串 通过循环处理
     for i in range(num):
         string = '[{}]'.format(a_data_list[i]) if isinstance(a_data_list[i], int) else '["{}"]'.format(a_data_list[i])

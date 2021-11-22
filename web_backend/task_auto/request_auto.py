@@ -8,6 +8,9 @@ logger = log()
 
 # 断言处理函数
 def auto_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
+    """
+    使用此函数，需要提前将a_data_list中的值处理好，比如将其中字符串类型的数字，转换为int类型，否则会出错
+    """
     result = False
     if num == 1 and a_mode == ">":
         result = True if item[a_data_list] > a_result_data else False

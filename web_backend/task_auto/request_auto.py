@@ -224,7 +224,7 @@ def request_auto(item):
             # 处理断言
             a_data_list = a_data.split(".")[1:]
             num = len(a_data_list)
-            result = auto_assert(li, num, a_mode, a_data_list, a_result_data)
+            result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
             a_status = 1 if result else 0
             sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
             logger.debug("update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(status_code, a_status, li, case_id))

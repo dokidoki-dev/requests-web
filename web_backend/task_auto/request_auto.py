@@ -6,6 +6,7 @@ import requests
 logger = log()
 
 
+# 断言处理函数
 def auto_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
     result = False
     if num == 1 and a_mode == ">":
@@ -153,6 +154,36 @@ def auto_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
     elif num == 10 and a_mode == "<=":
         num1, num2, num3, num4, num5, num6, num7, num8, num9, num10 = a_data_list
         result = True if item[num1][num2][num3][num4][num5][num6][num7][num8][num9][num10] <= a_result_data else False
+    return result
+
+
+# 第二种方案：使用eval()函数    不推荐，可能存在未知安全问题
+# 将读取到的断言数据，分割成列表后，读取列表长度，然后通过循环凭借字符串格式的读取变量，然后放入eval()函数处理
+# 例如    item = "data["msg"][0]["num"]"   ->  eval(item)   此时 eval(item) 经过处理就等同于 data["msg"][0]["num"]
+# 也可以将eval(item)赋值   p = eval(item)  此时变量p就等同于 data["msg"][0]["num"]   然后即可进行断言操作
+
+# 断言处理函数 可能存在不安全的问题
+def eval_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
+    """
+    item参数虽然未使用，但是不能删除，因为eval()函数需要使用
+    """
+    result = False
+    items = "item"
+    # 拼接字符串 通过循环处理
+    for i in range(num):
+        string = '[{}]'.format(a_data_list[i]) if isinstance(a_data_list[i], int) else '["{}"]'.format(a_data_list[i])
+        items = items + string
+    # 处理完成，使用eval()函数处理即可转换
+    if a_mode == ">":
+        result = True if eval(items) > a_result_data else False
+    elif a_mode == "<":
+        result = True if eval(items) < a_result_data else False
+    elif a_mode == "=":
+        result = True if eval(items) == a_result_data else False
+    elif a_mode == ">=":
+        result = True if eval(items) >= a_result_data else False
+    elif a_mode == "<=":
+        result = True if eval(items) <= a_result_data else False
     return result
 
 

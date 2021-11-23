@@ -40,6 +40,7 @@ CREATE TABLE `user_info` (
 /* 测试用例表 */
 CREATE TABLE `jk_testcase` (
   `case_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用例id',
+  `sort` int(11) NOT NULL COMMENT '排序 在相同分组group_id内，数字唯一，不允许重复 数字越小，优先级越高',
   `case_name` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '用例名称',
   `method` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '请求方式 GET POST',
   `path` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '请求路径',

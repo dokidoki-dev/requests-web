@@ -166,7 +166,7 @@ def auto_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
 # 也可以将eval(item)赋值   p = eval(item)  此时变量p就等同于 data["msg"][0]["num"]   然后即可进行断言操作
 
 # 断言处理函数 可能存在不安全的问题
-def eval_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
+def eval_assert(item: object, num: int, a_mode, a_data_list, a_result_data) -> bool:
     """
     item参数虽然未使用，但是不能删除，因为eval()函数需要使用
     """
@@ -193,7 +193,7 @@ def eval_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
     return result
 
 
-def request_auto(item):
+def request_auto(item: object):
     case_id, method, path, url, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data = item
     sql = "update jk_testcase set sub_status=1 where case_id=%s"
     # 更新用例状态
@@ -216,7 +216,9 @@ def request_auto(item):
             if status_code != 200:
                 logger.error("接口返回状态码非200，无法断言")
                 sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
-                logger.debug("update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(status_code, li, case_id))
+                logger.debug(
+                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                        status_code, li, case_id))
                 ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
                 if not ok:
                     logger.error("数据库更新数据未知异常")
@@ -227,7 +229,9 @@ def request_auto(item):
             result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
             a_status = 1 if result else 0
             sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
-            logger.debug("update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(status_code, a_status, li, case_id))
+            logger.debug(
+                "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                    status_code, a_status, li, case_id))
             ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
             if ok:
                 return True
@@ -240,7 +244,9 @@ def request_auto(item):
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
-        logger.debug("update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(status_code, li))
+        logger.debug(
+            "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+                status_code, li))
         ok = s.update_one(sql_u, [0, 2, status_code, li, ])
         if not ok:
             logger.error("更新用例结果失败")
@@ -257,4 +263,3 @@ def request_auto(item):
         if is_rely_on == 1:
             pass
         requests.get()
-

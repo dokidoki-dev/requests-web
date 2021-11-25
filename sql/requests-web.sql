@@ -55,6 +55,7 @@ CREATE TABLE `jk_testcase` (
   `a_result_data` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '断言预期结果数据',
   `a_status` int(2) DEFAULT NULL COMMENT '断言结果  0失败  1成功',
   `is_rely_on` int(2) NOT NULL DEFAULT '0' COMMENT '是否依赖  0不依赖   1依赖 默认0',
+  `rely_id` int(11) DEFAULT NULL COMMENT '依赖用例id',
   `header` text COLLATE utf8mb4_bin NOT NULL COMMENT '请求头',
   `request_data` text COLLATE utf8mb4_bin COMMENT '请求数据',
   `result_data` text COLLATE utf8mb4_bin COMMENT '返回数据',

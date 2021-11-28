@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM ubuntu
 RUN mkdir -p /var/www
 COPY . /var/www
 WORKDIR /var/www

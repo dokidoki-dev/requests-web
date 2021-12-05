@@ -194,7 +194,10 @@ def eval_assert(item: object, num: int, a_mode, a_data_list, a_result_data) -> b
 
 
 def request_auto(item: object):
-    case_id, method, path, url, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data = item
+    """
+    依赖只支持去读依赖接口返回值
+    """
+    case_id, method, path, url, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = item
     sql = "update jk_testcase set sub_status=1 where case_id=%s"
     # 更新用例状态
     s = SQLMysql()
@@ -210,6 +213,12 @@ def request_auto(item: object):
             # 判断是否存在依赖
             if is_rely_on == 1:
                 pass
+            sql = "select result_data from jk_testcase where rely_id=%s"
+            da = s.query_one(sql, [rely_id, ])
+            if not da:
+                logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
+                return
+
             r = requests.get(url=(url + "/" + path), headers=header, params=request_data, timeout=10)
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201

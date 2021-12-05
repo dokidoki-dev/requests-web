@@ -8,6 +8,7 @@ import json
 from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
 from web_backend.error_text.error_text import APIException, ServerError, HTTPException
+from web_backend.jwt_token.jwt_token import JWT_USER
 
 app = Flask(__name__)
 
@@ -33,12 +34,16 @@ def interceptor():
             return
     uuid = request.cookies.get('uuid', None)
     username = request.cookies.get('username', None)
+    token = request.cookies.get('token', None)
     logger.debug("uuid: " + str(uuid) + " username: " + str(username))
     logger.debug("cookies: " + str(request.cookies))
-    if uuid is None or username is None:
+    if not uuid or not username or not token:
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 判断用户数据是否正确
+    ok = JWT_USER.verify_token(token)
+    if ok is None:
+        return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
     # 此处查询限制不要轻易改动，用户以及其他模块，依赖此处用户的实时状态，改动后要注意用户模块和其他模块查询结果的影响
     sql = "select u_id, u_password, u_salt from user_info where u_name=%s and is_active=1 and is_delete=0"

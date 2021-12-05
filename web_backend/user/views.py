@@ -1,3 +1,5 @@
+import time
+
 from flask import Blueprint, request, Response
 import json
 import mysql.pymysql as pymysql
@@ -5,6 +7,7 @@ import re
 import hashlib
 from web_backend.user import logic
 from web_backend.logger_text.logger_text import log
+from web_backend.jwt_token.jwt_token import JWT_USER
 
 user = Blueprint('user', __name__)
 
@@ -71,6 +74,12 @@ def login():
         response.set_cookie('username', is_null[0])
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))
+        token = JWT_USER.create_token({
+            "uuid": uuid,
+            "username": is_null[0],
+            "tmp": int(round(time.time() * 1000))
+        })
+        response.set_cookie('token', token)
         return response
     else:
         data["code"] = 9995
@@ -162,6 +171,7 @@ def logout():
     response = Response(json.dumps(data), content_type='application/json')
     response.delete_cookie('uuid')
     response.delete_cookie('username')
+    response.delete_cookie('token')
     logger.info("返回信息" + str(data))
     return response
 

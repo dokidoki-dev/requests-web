@@ -1,6 +1,8 @@
 # 配置文件
 class Config:
-    pass
+    # 设置jwt加密盐
+    jwt_salt = "jzsdk!@'.,/390se8wq28~%$#*abvvcgfm,jkjk*()&*%$djks__+_=-=dskl?><Llskla[]ksoasap134w9w30"
+    jwt_token_timeout = 24  # 小时制
 
 
 class Development(Config):

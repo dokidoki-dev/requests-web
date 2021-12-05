@@ -5,6 +5,8 @@ import json
 import mysql.pymysql as pymysql
 import re
 import hashlib
+
+import settings
 from web_backend.user import logic
 from web_backend.logger_text.logger_text import log
 from web_backend.jwt_token.jwt_token import JWT_USER
@@ -70,16 +72,16 @@ def login():
         response = Response(json.dumps(data), content_type='application/json')
         # 处理uuid，加密
         uuid = hashlib.md5((str(is_null[5]) + is_null[2]).encode('utf-8')).hexdigest()
-        response.set_cookie('uuid', uuid, max_age=86400)
-        response.set_cookie('username', is_null[0])
+        response.set_cookie('uuid', uuid, max_age=settings.Config.cookies_timeout)
+        response.set_cookie('username', is_null[0], max_age=settings.Config.cookies_timeout)
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))
         token = JWT_USER.create_token({
             "uuid": uuid,
             "username": is_null[0],
-            "tmp": int(round(time.time() * 1000))
+            "tmp": int(round(time.time() * 1000))  # 当前token生成时间
         })
-        response.set_cookie('token', token)
+        response.set_cookie('token', token, max_age=settings.Config.cookies_timeout)
         return response
     else:
         data["code"] = 9995

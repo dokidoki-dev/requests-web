@@ -2,7 +2,8 @@
 class Config:
     # 设置jwt加密盐
     jwt_salt = "jzsdk!@'.,/390se8wq28~%$#*abvvcgfm,jkjk*()&*%$djks__+_=-=dskl?><Llskla[]ksoasap134w9w30"
-    jwt_token_timeout = 24  # 小时制
+    jwt_token_timeout = 24   # 小时制
+    cookies_timeout = 86400  # 单位秒
 
 
 class Development(Config):

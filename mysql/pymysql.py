@@ -1,13 +1,13 @@
-import pymysql
+﻿import pymysql
 from web_backend.logger_text.logger_text import log
 
 logger = log()
 
 mysql_config = {
-    "host": "192.168.0.109",
+    "host": "10.43.1.7",
     "post": 3306,
     "user": "root",
-    "passwd": "123456",
+    "passwd": "liebao123",
     "db": "request_web"
 }
 

@@ -44,22 +44,22 @@ def interceptor():
     ok = JWT_USER.verify_token(token)
     if ok is None:
         return Response(json.dumps(data), content_type='application/json')
-    s = SQLMysql()
-    # 此处查询限制不要轻易改动，用户以及其他模块，依赖此处用户的实时状态，改动后要注意用户模块和其他模块查询结果的影响
-    sql = "select u_id, u_password, u_salt from user_info where u_name=%s and is_active=1 and is_delete=0"
-    logger.debug("select u_id, u_password, u_salt from user_info where u_name={} and is_active=1 and is_delete=0".format(username))
-    is_null = s.query_one(sql, [username, ])
-    logger.debug("查询信息：" + str(is_null))
-    if is_null is None:
-        data["code"] = 9201
-        logger.info("返回信息" + str(data))
-        return Response(json.dumps(data), content_type='application/json')
-    user_uuid = hashlib.md5((str(is_null[0]) + is_null[2]).encode('utf-8')).hexdigest()
-    logger.debug("拦截器信息比对：" + "user_uuid：" + user_uuid + " uuid：" + uuid + " 比对结果：" + user_uuid != uuid)
-    if user_uuid != uuid:
-        data["code"] = 9202
-        logger.info("返回信息" + str(data))
-        return Response(json.dumps(data), content_type='application/json')
+    # s = SQLMysql()
+    # # 此处查询限制不要轻易改动，用户以及其他模块，依赖此处用户的实时状态，改动后要注意用户模块和其他模块查询结果的影响
+    # sql = "select u_id, u_password, u_salt from user_info where u_name=%s and is_active=1 and is_delete=0"
+    # logger.debug("select u_id, u_password, u_salt from user_info where u_name={} and is_active=1 and is_delete=0".format(username))
+    # is_null = s.query_one(sql, [username, ])
+    # logger.debug("查询信息：" + str(is_null))
+    # if is_null is None:
+    #     data["code"] = 9201
+    #     logger.info("返回信息" + str(data))
+    #     return Response(json.dumps(data), content_type='application/json')
+    # user_uuid = hashlib.md5((str(is_null[0]) + is_null[2]).encode('utf-8')).hexdigest()
+    # logger.debug("拦截器信息比对：" + "user_uuid：" + user_uuid + " uuid：" + uuid + " 比对结果：" + user_uuid != uuid)
+    # if user_uuid != uuid:
+    #     data["code"] = 9202
+    #     logger.info("返回信息" + str(data))
+    #     return Response(json.dumps(data), content_type='application/json')
 
 
 # 全局错误AOP处理

@@ -1,5 +1,6 @@
 import time
-
+import base64
+import ast
 from flask import Blueprint, request, Response
 import json
 import mysql.pymysql as pymysql
@@ -190,7 +191,12 @@ def user_list():
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
     # 判断是否管理员
-    u_name = request.cookies.get('username')
+    # u_name = request.cookies.get('username')
+    # token此处一定不会为空
+    token = request.cookies.get("token", None)
+    token_payload = base64.b64decode(token.split(".")[1]).decode()
+    token_payload = ast.literal_eval(token_payload)
+    u_name = token_payload["username"]
     select = "select is_admin from user_info where u_name=%s and is_delete=0 and is_active=1"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0 and is_active=1".format(u_name))
     s = pymysql.SQLMysql()
@@ -292,7 +298,12 @@ def user_delete():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 判断是否管理员
-    user_name = request.cookies.get('username')
+    # user_name = request.cookies.get('username')
+    # token此处一定不会为空
+    token = request.cookies.get("token", None)
+    token_payload = base64.b64decode(token.split(".")[1]).decode()
+    token_payload = ast.literal_eval(token_payload)
+    user_name = token_payload["username"]
     select = "select is_admin from user_info where u_name=%s and is_delete=0"
     sql = "update user_info set is_delete=1, delete_time=now() where u_name=%s and is_delete=0"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0".format(user_name))
@@ -361,7 +372,12 @@ def user_update():
     s = pymysql.SQLMysql()
     sql_s = "update user_info set u_password=%s, u_phone=%s, is_active=%s, u_salt=%s, modfiy_time=now() where u_name=%s and is_delete=0"
     # 判断是否管理员
-    user_name = request.cookies.get('username')
+    # user_name = request.cookies.get('username')
+    # token此处一定不会为空
+    token = request.cookies.get("token", None)
+    token_payload = base64.b64decode(token.split(".")[1]).decode()
+    token_payload = ast.literal_eval(token_payload)
+    user_name = token_payload["username"]
     select = "select is_admin from user_info where u_name=%s and is_delete=0"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0".format(user_name))
     is_null = s.query_one(select, [user_name, ])

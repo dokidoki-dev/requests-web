@@ -197,7 +197,7 @@ def request_auto(item: object):
     """
     依赖只支持去读依赖接口返回值
     """
-    case_id, method, path, url, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = item
+    case_id, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = item
     sql = "update jk_testcase set sub_status=1 where case_id=%s"
     # 更新用例状态
     s = SQLMysql()

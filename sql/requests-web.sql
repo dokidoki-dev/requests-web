@@ -40,11 +40,12 @@ CREATE TABLE `user_info` (
 /* 测试用例表 */
 CREATE TABLE `jk_testcase` (
   `case_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用例id',
-  `sort` int(11) NOT NULL COMMENT '排序 在相同分组group_id内，数字唯一，不允许重复 数字越小，优先级越高',
+  `sort` int(11) NOT NULL COMMENT '排序 在相同分组group_id内，数字唯一，不允许重复',
   `case_name` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '用例名称',
   `method` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '请求方式 GET POST',
   `path` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '请求路径',
   `url` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '请求链接',
+  `params` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'params参数',
   `status` int(2) NOT NULL DEFAULT '0' COMMENT '状态码 0 处于未执行队列   1处于执行中队列  默认0',
   `sub_status` int(2) NOT NULL DEFAULT '0' COMMENT '子状态码 0 未执行  1执行中  2 执行成功  默认0',
   `result_code` int(5) NOT NULL DEFAULT '0' COMMENT '本次用例执行结果状态码   200执行成功  201执行失败  0未执行',
@@ -57,7 +58,7 @@ CREATE TABLE `jk_testcase` (
   `is_rely_on` int(2) NOT NULL DEFAULT '0' COMMENT '是否依赖  0不依赖   1依赖 默认0',
   `rely_id` int(11) DEFAULT NULL COMMENT '依赖用例id',
   `header` text COLLATE utf8mb4_bin NOT NULL COMMENT '请求头',
-  `request_data` text COLLATE utf8mb4_bin COMMENT '请求数据',
+  `request_data` text COLLATE utf8mb4_bin COMMENT '请求数据 body',
   `result_data` text COLLATE utf8mb4_bin COMMENT '返回数据',
   `group_id` int(11) NOT NULL COMMENT '所属分组id',
   `create_time` datetime NOT NULL COMMENT '创建时间',

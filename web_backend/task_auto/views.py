@@ -1,3 +1,4 @@
+import ast
 import json
 import time
 from web_backend.logger_text.logger_text import log
@@ -6,7 +7,7 @@ from mysql.pymysql import SQLMysql
 from web_backend.auto_queue.t_queue import auto_queue
 
 q = auto_queue()
-task_auto = Blueprint('task_auto', __name__)
+task_auto = Blueprint('task_auto', __name__, url_prefix="/api/v1/task")
 logger = log()
 
 
@@ -43,8 +44,8 @@ def task_add():
     # 查询当前是否存在用例或者用例组
     if case_type == 1:
         # 单个用例  单个用例不存在依赖，所以is_rely_on一定为0
-        sql = "select method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where case_id=%s"
-        logger.debug("select method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where case_id={}".format(case_id))
+        sql = "select method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where case_id=%s"
+        logger.debug("select method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where case_id={}".format(case_id))
         li = s.query_one(sql, [case_id, ])
         logger.debug(li)
         if li is None:
@@ -52,7 +53,7 @@ def task_add():
             data["msg"] = "当前用例不存在"
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
-        method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data = li
+        method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = li
         # 判断当前用例是否处于正在执行队列中，处于执行中时，不允许再次执行此用例
         if status == 1:
             data["code"] = 39999
@@ -64,18 +65,21 @@ def task_add():
             "method": method,
             "path": path,
             "url": url,
+            "params": params,
             "is_assert": is_assert,
             "a_data": a_data,
             "a_mode": a_mode,
             "a_type": a_type,
             "a_result_data": a_result_data,
             "is_rely_on": 0,
+            "rely_id": rely_id,
             "header": header,
             "request_data": request_data
         }
         # 处理环境变量的问题
-        url = eval(lists["url"])
-        header = eval(lists["header"])
+        # 将数据拿出来，转换为字典格式
+        url = ast.literal_eval(lists["url"])
+        header = ast.literal_eval(lists["header"])
         if url["mode"] == "env":
             sql_s = "select v_data from jk_variable from where v_name=%s"
             logger.debug("select v_data from jk_variable from where v_name={}".format(url["data"]))
@@ -128,8 +132,8 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         # 查询用例组下的所有用例
-        sql_s = "select case_id, method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where group_id=%s"
-        logger.debug("select case_id, method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where group_id={}".format(li[0]))
+        sql_s = "select case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data from jk_testcase where group_id=%s"
+        logger.debug("select case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data from jk_testcase where group_id={}".format(li[0]))
         lists = s.query_all(sql_s, [li[0], ])
         logger.debug(lists)
         if not lists:
@@ -139,18 +143,20 @@ def task_add():
             return Response(json.dumps(data), content_type='application/json')
         all = []
         for i in range(len(lists)):
-            case_id, method, path, url, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data = lists[i]
+            case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = lists[i]
             list_all = {
                 "case_id": case_id,
                 "method": method,
                 "path": path,
                 "url": url,
+                "params": params,
                 "is_assert": is_assert,
                 "a_data": a_data,
                 "a_mode": a_mode,
                 "a_type": a_type,
                 "a_result_data": a_result_data,
                 "is_rely_on": 0,
+                "rely_id": rely_id,
                 "header": header,
                 "request_data": request_data
             }
@@ -161,8 +167,9 @@ def task_add():
                 logger.info("返回信息" + str(data))
                 return Response(json.dumps(data), content_type='application/json')
             # 处理环境变量的问题
-            url = eval(list_all["url"])
-            header = eval(list_all["header"])
+            # 将数据拿出来，转换为字典格式
+            url = ast.literal_eval(list_all["url"])
+            header = ast.literal_eval(list_all["header"])
             if url["mode"] == "env":
                 sql_s = "select v_data from jk_variable from where v_name=%s"
                 logger.debug("select v_data from jk_variable from where v_name={}".format(url["data"]))

@@ -2,6 +2,7 @@ import json
 from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
 import requests
+import ast
 
 logger = log()
 
@@ -198,6 +199,15 @@ def request_auto(item: object):
     依赖只支持去读依赖接口返回值
     """
     case_id, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = item
+    # 数据处理 转换为字典   params    request_data
+    if params is None:
+        logger.info("params: None")
+    else:
+        params = ast.literal_eval(params)
+    if request_data is None:
+        logger.info("request_data: None")
+    else:
+        request_data = ast.literal_eval(request_data)
     sql = "update jk_testcase set sub_status=1 where case_id=%s"
     # 更新用例状态
     s = SQLMysql()
@@ -219,7 +229,7 @@ def request_auto(item: object):
                 logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
                 return
 
-            r = requests.get(url=(url + "/" + path), headers=header, params=request_data, timeout=10)
+            r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
             if status_code != 200:
@@ -249,7 +259,7 @@ def request_auto(item: object):
         # 判断是否存在依赖
         if is_rely_on == 1:
             pass
-        r = requests.get(url=(url + "/" + path), headers=header, params=request_data)
+        r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"

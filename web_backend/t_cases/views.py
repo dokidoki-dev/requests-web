@@ -74,7 +74,7 @@ def t_addcases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     sort = sort if isinstance(sort, int) else None  # int
-    request_data = request.json.get("request_data", {})
+    request_data = request.json.get("request_data", None)
     # 判断当前是否需要使用虚拟环境变量
     if not header or not url:
         if not env_url and not env_header:
@@ -175,7 +175,7 @@ def t_addcases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     # 校验request_data格式
-    if not isinstance(request_data, dict):
+    if request_data and not isinstance(request_data, dict):
         data["msg"] = "参数非法"
         data["code"] = 20012
         logger.info("返回信息" + str(data))
@@ -308,7 +308,7 @@ def t_updatecases():
     rely_id = request.json.get("rely_id", None) if is_rely == 1 else None
     sort = request.json.get("sort", None)
     sort = sort if isinstance(sort, int) else None  # int
-    request_data = request.json.get("request_data", {})
+    request_data = request.json.get("request_data", None)
     # 处理params参数合规
     if params is None:
         logger.info("params: None")
@@ -408,7 +408,7 @@ def t_updatecases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     # 校验request_data格式
-    if not isinstance(request_data, dict):
+    if request_data and not isinstance(request_data, dict):
         data["msg"] = "参数非法"
         data["code"] = 20112
         logger.info("返回信息" + str(data))

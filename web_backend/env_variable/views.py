@@ -5,13 +5,13 @@ import json
 from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
 
-env_variable = Blueprint('env_variable', __name__)
+env_variable = Blueprint('env_variable', __name__, url_prefix="/api/v1/env")
 
 # 日志处理
 logger = log()
 
 
-@env_variable.route('/env/v_lists', methods=['GET'])
+@env_variable.route('/v_lists', methods=['GET'])
 def env_var():
     data = {
         "object": None,
@@ -131,7 +131,7 @@ def env_var():
             return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/g_lists', methods=['GET'])
+@env_variable.route('/g_lists', methods=['GET'])
 def env_g_lists():
     data = {
         "object": None,
@@ -171,7 +171,7 @@ def env_g_lists():
     return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/add_v', methods=['POST'])
+@env_variable.route('/add_v', methods=['POST'])
 def env_add_var():
     data = {
         "object": None,
@@ -222,7 +222,7 @@ def env_add_var():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/add_group', methods=['POST'])
+@env_variable.route('/add_group', methods=['POST'])
 def env_add_group():
     data = {
         "object": None,
@@ -271,7 +271,7 @@ def env_add_group():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/update_v', methods=['POST'])
+@env_variable.route('/update_v', methods=['POST'])
 def env_update_v():
     data = {
         "object": None,
@@ -331,7 +331,7 @@ def env_update_v():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/update_g', methods=['POST'])
+@env_variable.route('/update_g', methods=['POST'])
 def env_update_g():
     data = {
         "object": None,
@@ -379,7 +379,7 @@ def env_update_g():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/delete_v', methods=['POST'])
+@env_variable.route('/delete_v', methods=['POST'])
 def env_delete_v():
     data = {
         "object": None,
@@ -425,7 +425,7 @@ def env_delete_v():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@env_variable.route('/env/delete_g', methods=['POST'])
+@env_variable.route('/delete_g', methods=['POST'])
 def env_delete_g():
     data = {
         "object": None,

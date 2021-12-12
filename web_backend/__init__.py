@@ -13,7 +13,7 @@ from web_backend.jwt_token.jwt_token import JWT_USER
 app = Flask(__name__)
 
 
-lists = ['/login']
+lists = ['/api/v1/user/login']
 # 日志处理
 logger = log()
 

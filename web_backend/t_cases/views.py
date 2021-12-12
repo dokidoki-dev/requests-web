@@ -30,6 +30,8 @@ def t_addcases():
         $context.lists.0.msg  代表lists属性中的第一个对象中的msg的值
         传参的数值一定以 . 来区分  确定数组中的第几个值，直接写对应数字即可
         $context 固定参数,表示当前用例返回结果对象 固定单词 ,传参第一个单词必须是此单词
+        rely_data 传入格式同上断言格式  $context开头
+    依赖只支持读取依赖接口的返回值：result_data 暂不支持其他值读取，写入方式类似于断言写法 $context.lists.0.msg
     :return:
     '''
     data = {
@@ -63,6 +65,9 @@ def t_addcases():
     a_result_data = request.json.get("a_result_data", None)
     is_rely = 1 if request.json.get("is_rely_on", 0) == 1 else 0
     rely_id = request.json.get("rely_id", None) if is_rely == 1 else None
+    rely_data = request.json.get("rely_data", None)
+    rely_mode = request.json.get("rely_mode", None)
+    rely_key = request.json.get("rely_key", None)
     sort = request.json.get("sort", None)
     # 处理params参数合规
     if params is None:
@@ -181,8 +186,8 @@ def t_addcases():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
-    sql_na = "insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, header, request_data, group_id, create_time) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
-    sql_ya = "insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data, group_id, create_time) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
+    sql_na = "insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
+    sql_ya = "insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
     sql_s = "select group_id from jk_cgroups where group_name=%s"
     logger.debug("select group_id from jk_cgroups where group_name={}".format(group_name))
     group_id = s.query_one(sql_s, [group_name, ])
@@ -232,14 +237,14 @@ def t_addcases():
             "data": url[0]
         }
     if is_assert == 1:
-        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
-                           is_rely, rely_id,
+        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
+                           is_rely, rely_id, rely_data, rely_mode, rely_key,
                            str(header),
                            str(request_data), group_id))
         ok = s.create_one(sql_ya,
                           [sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
                            is_rely,
-                           rely_id,
+                           rely_id, rely_data, rely_mode, rely_key,
                            str(header),
                            str(request_data), group_id, ])
         if ok:
@@ -254,9 +259,9 @@ def t_addcases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
-        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, str(header),
+        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id))
-        ok = s.create_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, str(header),
+        ok = s.create_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id, ])
         if ok:
             data["msg"] = "添加成功"
@@ -306,6 +311,9 @@ def t_updatecases():
     a_result_data = request.json.get("a_result_data", None)
     is_rely = 1 if request.json.get("is_rely_on", 0) == 1 else 0
     rely_id = request.json.get("rely_id", None) if is_rely == 1 else None
+    rely_data = request.json.get("rely_data", None)
+    rely_mode = request.json.get("rely_mode", None)
+    rely_key = request.json.get("rely_key", None)
     sort = request.json.get("sort", None)
     sort = sort if isinstance(sort, int) else None  # int
     request_data = request.json.get("request_data", None)
@@ -415,8 +423,8 @@ def t_updatecases():
         return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
     sql_q = "select status from jk_testcase where case_id=%s"
-    sql_na = "update jk_testcase set sort=%s, case_name=%s, method=%s, path=%s, url=%s, params=%s, is_assert=%s, is_rely_on=%s, rely_id=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
-    sql_ya = "update jk_testcase set sort=%s, case_name=%s, method=%s, path=%s, url=%s, params=%s, is_assert=%s, a_data=%s, a_mode=%s, a_type=%s, a_result_data=%s, is_rely_on=%s, rely_id=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
+    sql_na = "update jk_testcase set sort=%s, case_name=%s, method=%s, path=%s, url=%s, params=%s, is_assert=%s, is_rely_on=%s, rely_id=%s, rely_data=%s, rely_mode=%s, rely_key=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
+    sql_ya = "update jk_testcase set sort=%s, case_name=%s, method=%s, path=%s, url=%s, params=%s, is_assert=%s, a_data=%s, a_mode=%s, a_type=%s, a_result_data=%s, is_rely_on=%s, rely_id=%s, rely_data=%s, rely_mode=%s, rely_key=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
     sql_s = "select group_id from jk_cgroups where group_name=%s"
     logger.debug("select status from jk_testcase where case_id={}".format(case_id))
     pd = s.query_one(sql_q, [case_id, ])
@@ -481,11 +489,11 @@ def t_updatecases():
             "data": url[0]
         }
     if is_assert == 1:
-        logger.debug("update jk_testcase set sort={}, case_name={}, method={}, path={}, url={}, params={}, is_assert={}, a_data={}, a_mode={}, a_type={}, a_result_data={}, is_rely_on={}, rely_id={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
-                           is_rely, rely_id, str(header), str(request_data), group_id, case_id[0]))
+        logger.debug("update jk_testcase set sort={}, case_name={}, method={}, path={}, url={}, params={}, is_assert={}, a_data={}, a_mode={}, a_type={}, a_result_data={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
+                           is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id[0]))
         ok = s.update_one(sql_ya,
                           [sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
-                           is_rely, rely_id, str(header), str(request_data), group_id, case_id[0], ])
+                           is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id[0], ])
         if ok:
             data["msg"] = "修改成功"
             data["code"] = 20116
@@ -498,9 +506,9 @@ def t_updatecases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
-        logger.debug("update jk_testcase set sort={} case_name={}, method={}, path={}, url={}, params={}, is_assert={}, is_rely_on={}, rely_id={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, str(header),
+        logger.debug("update jk_testcase set sort={} case_name={}, method={}, path={}, url={}, params={}, is_assert={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id, case_id[0]))
-        ok = s.update_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, str(header),
+        ok = s.update_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id, case_id[0], ])
         if ok:
             data["msg"] = "修改成功"
@@ -602,8 +610,8 @@ def t_lists():
             return Response(json.dumps(data), content_type='application/json')
         else:
             group_name = group_id[0]
-    sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s or t.case_id=%s or t.case_name like %s limit %s, %s"
-    logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_id={} or t.case_name like {} limit {}, {}".format(group_name, case_id, ('%' + str(case_name) + '%'), (page - 1), limit))
+    sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s or t.case_id=%s or t.case_name like %s limit %s, %s"
+    logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_id={} or t.case_name like {} limit {}, {}".format(group_name, case_id, ('%' + str(case_name) + '%'), (page - 1), limit))
     li = s.query_all(sql, [group_name, case_id, ('%' + str(case_name) + '%'), (page - 1), limit, ])
     logger.debug("查询信息：" + str(li))
     if not li:
@@ -661,9 +669,9 @@ def t_lists_one():
         data["msg"] = "参数非法"
         data["code"] = 20400
         return Response(json.dumps(data), content_type='application/json')
-    sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id=%s"
+    sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.is_rely_on, t.rely_id, t.rely_data, t.rely_mode, t.rely_key, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id=%s"
     s = SQLMysql()
-    logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id={}".format(case_id))
+    logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.is_rely_on, t.rely_id, t.rely_data, t.rely_mode, t.rely_key, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id={}".format(case_id))
     li = s.query_one(sql, [case_id, ])
     logger.debug("查询信息：" + str(li))
     if li is None:
@@ -672,7 +680,7 @@ def t_lists_one():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 解构数据
-    sort, case_id, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data, group_name = li
+    sort, case_id, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_name = li
     list_one = {
         "case_id": case_id,
         "sort": sort,
@@ -688,6 +696,9 @@ def t_lists_one():
         "a_result_data": a_result_data,
         "is_rely_on": is_rely_on,
         "rely_id": rely_id,
+        "rely_data": rely_data,
+        "rely_mode": rely_mode,
+        "rely_key": rely_key,
         "header": header,
         "request_data": request_data,
         "group_name": group_name

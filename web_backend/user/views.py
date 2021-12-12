@@ -12,7 +12,7 @@ from web_backend.user import logic
 from web_backend.logger_text.logger_text import log
 from web_backend.jwt_token.jwt_token import JWT_USER
 
-user = Blueprint('user', __name__)
+user = Blueprint('user', __name__, url_prefix="/api/v1/user")
 
 # 日志处理
 logger = log()
@@ -419,7 +419,7 @@ def user_update():
         return Response(json.dumps(data), content_type='application/json')
 
 
-@user.route('/user/updatepd', methods=['POST'])
+@user.route('/updatepd', methods=['POST'])
 def user_updatepd():
     # 处理传参
     data = {

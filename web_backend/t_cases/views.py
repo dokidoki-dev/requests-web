@@ -4,7 +4,7 @@ from flask import Blueprint, request, Response
 from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
 
-test_cases = Blueprint('test_cases', __name__)
+test_cases = Blueprint('test_cases', __name__, url_prefix="/api/v1/cases")
 
 logger = log()
 

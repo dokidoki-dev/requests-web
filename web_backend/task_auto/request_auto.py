@@ -7,6 +7,7 @@ import ast
 logger = log()
 
 
+# 不推荐使用
 # 断言处理函数
 def auto_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
     """
@@ -161,15 +162,17 @@ def auto_assert(item, num, a_mode, a_data_list, a_result_data) -> bool:
     return result
 
 
-# 第二种方案：使用eval()函数    不推荐，可能存在未知安全问题
+# 第二种方案：使用eval()函数
 # 将读取到的断言数据，分割成列表后，读取列表长度，然后通过循环凭借字符串格式的读取变量，然后放入eval()函数处理
 # 例如    item = "data["msg"][0]["num"]"   ->  eval(item)   此时 eval(item) 经过处理就等同于 data["msg"][0]["num"]
 # 也可以将eval(item)赋值   p = eval(item)  此时变量p就等同于 data["msg"][0]["num"]   然后即可进行断言操作
 
-# 断言处理函数 可能存在不安全的问题
+# 断言处理函数
 def eval_assert(item: object, num: int, a_mode, a_data_list, a_result_data) -> bool:
     """
     item参数虽然未使用，但是不能删除，因为eval()函数需要使用
+    a_data_list: 用户填写的读取断言的值 a_data
+    item: 接口返回数据
     """
     result = False
     items = "item"
@@ -198,7 +201,7 @@ def request_auto(item: object):
     """
     依赖只支持去读依赖接口返回值
     """
-    case_id, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = item
+    case_id, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = item
     # 数据处理 转换为字典   params    request_data
     if params is None:
         logger.info("params: None")
@@ -222,13 +225,63 @@ def request_auto(item: object):
         if is_assert == 1:
             # 判断是否存在依赖
             if is_rely_on == 1:
-                pass
+                sql_rely = "select result_data from jk_testcase where case_id =%s"
+                ok = s.query_one(sql_rely, [rely_id, ])
+                if ok is None:
+                    logger.info("依赖用例没有回复结果")
+                    return False
+                # 处理读取依赖用例返回数据的value
+                rely_result_value = rely_data.split(".")[1:] if rely_data else None
+                if rely_result_value is None:
+                    return False
+                ok = ok[0]
+                item = "ok"
+                for i in range(len(rely_result_value)):
+                    string = '[{}]'.format(rely_result_value[i]) if isinstance(rely_result_value[i], int) else '["{}"]'.format(rely_result_value[i])
+                    item = item + string
+                try:
+                    if rely_mode == 1:
+                        params[rely_key] = eval(item)
+                    if rely_mode == 2:
+                        header[rely_key] = eval(item)
+                    if rely_mode == 3:
+                        request_data[rely_key] = eval(item)
+                except Exception as e:
+                    logger.error(e)
+                    return False
+                r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+                li = json.loads(r.text)
+                status_code = 200 if r.status_code == 200 else 201
+                if status_code != 200:
+                    logger.error("接口返回状态码非200，无法断言")
+                    sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                    logger.debug(
+                        "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                            status_code, li, case_id))
+                    ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                    if not ok:
+                        logger.error("数据库更新数据未知异常")
+                    return False
+                # 处理断言
+                a_data_list = a_data.split(".")[1:]
+                num = len(a_data_list)
+                result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
+                a_status = 1 if result else 0
+                sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                logger.debug(
+                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                        status_code, a_status, li, case_id))
+                ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+                if ok:
+                    return True
+                else:
+                    return False
+            # 不依赖 但是需要断言
             sql = "select result_data from jk_testcase where rely_id=%s"
             da = s.query_one(sql, [rely_id, ])
             if not da:
                 logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
                 return
-
             r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
@@ -256,17 +309,56 @@ def request_auto(item: object):
                 return True
             else:
                 return False
-        # 判断是否存在依赖
+        # 不需要断言
+        # 判断是否存在依赖，存在依赖
         if is_rely_on == 1:
-            pass
+            sql_rely = "select result_data from jk_testcase where case_id =%s"
+            ok = s.query_one(sql_rely, [rely_id, ])
+            if ok is None:
+                logger.info("依赖用例没有回复结果")
+                return False
+            # 处理读取依赖用例返回数据的value
+            rely_result_value = rely_data.split(".")[1:] if rely_data else None
+            if rely_result_value is None:
+                return False
+            ok = ok[0]
+            item = "ok"
+            for i in range(len(rely_result_value)):
+                string = '[{}]'.format(rely_result_value[i]) if isinstance(rely_result_value[i],
+                                                                           int) else '["{}"]'.format(
+                    rely_result_value[i])
+                item = item + string
+            try:
+                if rely_mode == 1:
+                    params[rely_key] = eval(item)
+                if rely_mode == 2:
+                    header[rely_key] = eval(item)
+                if rely_mode == 3:
+                    request_data[rely_key] = eval(item)
+            except Exception as e:
+                logger.error(e)
+                return False
+            r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+            li = json.loads(r.text)
+            status_code = 200 if r.status_code == 200 else 201
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+            logger.debug(
+                "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+                    status_code, li, case_id))
+            ok = s.update_one(sql_p, [0, 2, status_code, li, case_id, ])
+            if ok:
+                return True
+            else:
+                return False
+        # 不需要断言，不存在依赖
         r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
         logger.debug(
             "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
-                status_code, li))
-        ok = s.update_one(sql_u, [0, 2, status_code, li, ])
+                status_code, li, case_id))
+        ok = s.update_one(sql_u, [0, 2, status_code, li, case_id, ])
         if not ok:
             logger.error("更新用例结果失败")
             return False
@@ -277,8 +369,144 @@ def request_auto(item: object):
         if is_assert == 1:
             # 判断是否存在依赖
             if is_rely_on == 1:
-                pass
-        # 判断是否存在依赖
+                sql_rely = "select result_data from jk_testcase where case_id =%s"
+                ok = s.query_one(sql_rely, [rely_id, ])
+                if ok is None:
+                    logger.info("依赖用例没有回复结果")
+                    return False
+                # 处理读取依赖用例返回数据的value
+                rely_result_value = rely_data.split(".")[1:] if rely_data else None
+                if rely_result_value is None:
+                    return False
+                ok = ok[0]
+                item = "ok"
+                for i in range(len(rely_result_value)):
+                    string = '[{}]'.format(rely_result_value[i]) if isinstance(rely_result_value[i],
+                                                                               int) else '["{}"]'.format(
+                        rely_result_value[i])
+                    item = item + string
+                try:
+                    if rely_mode == 1:
+                        params[rely_key] = eval(item)
+                    if rely_mode == 2:
+                        header[rely_key] = eval(item)
+                    if rely_mode == 3:
+                        request_data[rely_key] = eval(item)
+                except Exception as e:
+                    logger.error(e)
+                    return False
+                r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+                li = json.loads(r.text)
+                status_code = 200 if r.status_code == 200 else 201
+                if status_code != 200:
+                    logger.error("接口返回状态码非200，无法断言")
+                    sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                    logger.debug(
+                        "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                            status_code, li, case_id))
+                    ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                    if not ok:
+                        logger.error("数据库更新数据未知异常")
+                    return False
+                # 处理断言
+                a_data_list = a_data.split(".")[1:]
+                num = len(a_data_list)
+                result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
+                a_status = 1 if result else 0
+                sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                logger.debug(
+                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                        status_code, a_status, li, case_id))
+                ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+                if ok:
+                    return True
+                else:
+                    return False
+            # 不依赖 但是需要断言
+            sql = "select result_data from jk_testcase where rely_id=%s"
+            da = s.query_one(sql, [rely_id, ])
+            if not da:
+                logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
+                return
+            r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+            li = json.loads(r.text)
+            status_code = 200 if r.status_code == 200 else 201
+            if status_code != 200:
+                logger.error("接口返回状态码非200，无法断言")
+                sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                logger.debug(
+                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                        status_code, li, case_id))
+                ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                if not ok:
+                    logger.error("数据库更新数据未知异常")
+                return False
+            # 处理断言
+            a_data_list = a_data.split(".")[1:]
+            num = len(a_data_list)
+            result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
+            a_status = 1 if result else 0
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+            logger.debug(
+                "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                    status_code, a_status, li, case_id))
+            ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+            if ok:
+                return True
+            else:
+                return False
+        # 不需要断言
+        # 判断是否存在依赖，存在依赖
         if is_rely_on == 1:
-            pass
-        requests.get()
+            sql_rely = "select result_data from jk_testcase where case_id =%s"
+            ok = s.query_one(sql_rely, [rely_id, ])
+            if ok is None:
+                logger.info("依赖用例没有回复结果")
+                return False
+            # 处理读取依赖用例返回数据的value
+            rely_result_value = rely_data.split(".")[1:] if rely_data else None
+            if rely_result_value is None:
+                return False
+            ok = ok[0]
+            item = "ok"
+            for i in range(len(rely_result_value)):
+                string = '[{}]'.format(rely_result_value[i]) if isinstance(rely_result_value[i],
+                                                                           int) else '["{}"]'.format(
+                    rely_result_value[i])
+                item = item + string
+            try:
+                if rely_mode == 1:
+                    params[rely_key] = eval(item)
+                if rely_mode == 2:
+                    header[rely_key] = eval(item)
+                if rely_mode == 3:
+                    request_data[rely_key] = eval(item)
+            except Exception as e:
+                logger.error(e)
+                return False
+            r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+            li = json.loads(r.text)
+            status_code = 200 if r.status_code == 200 else 201
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+            logger.debug(
+                "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+                    status_code, li, case_id))
+            ok = s.update_one(sql_p, [0, 2, status_code, li, case_id, ])
+            if ok:
+                return True
+            else:
+                return False
+        # 不需要断言，不存在依赖
+        r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+        li = json.loads(r.text)
+        status_code = 200 if r.status_code == 200 else 201
+        sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+        logger.debug(
+            "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+                status_code, li, case_id))
+        ok = s.update_one(sql_u, [0, 2, status_code, li, case_id, ])
+        if not ok:
+            logger.error("更新用例结果失败")
+            return False
+        else:
+            return True

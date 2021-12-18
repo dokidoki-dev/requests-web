@@ -179,6 +179,23 @@ def t_addcases():
             data["code"] = 20011
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
+    # 校验断言格式以及依赖数据格式
+    if assert_data:
+        pattern = re.compile(r"^(\$context)")
+        is_null_a = pattern.search(assert_data)
+        if is_null_a is None:
+            data["msg"] = "参数非法"
+            data["code"] = 20011
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
+    if rely_data:
+        pattern = re.compile(r"^(\$context)")
+        is_null_r = pattern.search(rely_data)
+        if is_null_r is None:
+            data["msg"] = "参数非法"
+            data["code"] = 20011
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
     # 校验request_data格式
     if request_data and not isinstance(request_data, dict):
         data["msg"] = "参数非法"
@@ -413,6 +430,23 @@ def t_updatecases():
         if is_null is None:
             data["msg"] = "参数非法"
             data["code"] = 20111
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
+    # 校验断言格式以及依赖数据格式
+    if assert_data:
+        pattern = re.compile(r"^(\$context)")
+        is_null_a = pattern.search(assert_data)
+        if is_null_a is None:
+            data["msg"] = "参数非法"
+            data["code"] = 20011
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
+    if rely_data:
+        pattern = re.compile(r"^(\$context)")
+        is_null_r = pattern.search(rely_data)
+        if is_null_r is None:
+            data["msg"] = "参数非法"
+            data["code"] = 20011
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     # 校验request_data格式

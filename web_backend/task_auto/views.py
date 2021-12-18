@@ -44,8 +44,8 @@ def task_add():
     # 查询当前是否存在用例或者用例组
     if case_type == 1:
         # 单个用例  单个用例不存在依赖，所以is_rely_on一定为0
-        sql = "select method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where case_id=%s"
-        logger.debug("select method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, header, request_data from jk_testcase where case_id={}".format(case_id))
+        sql = "select method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data from jk_testcase where case_id=%s"
+        logger.debug("select method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data from jk_testcase where case_id={}".format(case_id))
         li = s.query_one(sql, [case_id, ])
         logger.debug(li)
         if li is None:
@@ -53,7 +53,7 @@ def task_add():
             data["msg"] = "当前用例不存在"
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
-        method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = li
+        method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = li
         # 判断当前用例是否处于正在执行队列中，处于执行中时，不允许再次执行此用例
         if status == 1:
             data["code"] = 39999
@@ -73,6 +73,9 @@ def task_add():
             "a_result_data": a_result_data,
             "is_rely_on": 0,
             "rely_id": rely_id,
+            "rely_mode": rely_mode,
+            "rely_key": rely_key,
+            "rely_data": rely_data,
             "header": header,
             "request_data": request_data
         }
@@ -132,8 +135,8 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         # 查询用例组下的所有用例
-        sql_s = "select case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data from jk_testcase where group_id=%s"
-        logger.debug("select case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data from jk_testcase where group_id={}".format(li[0]))
+        sql_s = "select case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data from jk_testcase where group_id=%s"
+        logger.debug("select case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data from jk_testcase where group_id={}".format(li[0]))
         lists = s.query_all(sql_s, [li[0], ])
         logger.debug(lists)
         if not lists:
@@ -143,7 +146,7 @@ def task_add():
             return Response(json.dumps(data), content_type='application/json')
         all = []
         for i in range(len(lists)):
-            case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, header, request_data = lists[i]
+            case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = lists[i]
             list_all = {
                 "case_id": case_id,
                 "method": method,
@@ -157,6 +160,9 @@ def task_add():
                 "a_result_data": a_result_data,
                 "is_rely_on": 0,
                 "rely_id": rely_id,
+                "rely_mode": rely_mode,
+                "rely_key": rely_key,
+                "rely_data": rely_data,
                 "header": header,
                 "request_data": request_data
             }

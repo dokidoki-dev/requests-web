@@ -47,6 +47,7 @@ class JWT_USER:
             # unverified_payload = jwt.decode(token, settings.Config.jwt_salt,, algorithms=['HS256'], verify=False)
             # print(unverified_payload)
             # 从token中获取payload【校验合法性】
+            # verified_payload 解码后的用户自定义内容 类型: 字典
             verified_payload = jwt.decode(token, settings.Config.jwt_salt, algorithms=['HS256'], verify=True)
             return verified_payload
         except jwt.exceptions.ExpiredSignatureError:

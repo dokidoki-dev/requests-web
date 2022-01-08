@@ -39,8 +39,8 @@ def login():
         return Response(json.dumps(data), content_type='application/json')
     # 查询用户是否存在
     s = pymysql.SQLMysql()
-    sql = "select u_name, u_password, u_salt, is_active, is_delete, u_id from user_info where u_name = %s"
-    logger.debug("select u_name, u_password, u_salt, is_active, is_delete, u_id from user_info where u_name={}".format(username))
+    sql = "select u_id, u_name, u_password, u_salt, is_active, is_delete from user_info where u_name = %s"
+    logger.debug("select u_id, u_name, u_password, u_salt, is_active, is_delete from user_info where u_name={}".format(username))
     is_null = s.query_one(sql, [username, ])
     logger.debug("查询用户信息：" + str(is_null))
     if is_null is None:
@@ -48,21 +48,21 @@ def login():
         data["msg"] = "用户名或密码错误"
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
-    if is_null[3] == 0:
+    if is_null[4] == 0:
         data["code"] = 9997
         data["msg"] = "账户已禁用，禁止登录！"
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
-    if is_null[4] == 1:
+    if is_null[5] == 1:
         data["code"] = 9996
         data["msg"] = "账户已注销，禁止登录！"
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 加密用户密码
-    password = hashlib.sha256((password + is_null[2]).encode('utf-8')).hexdigest()
-    logger.debug("密码比对：" + "用户输入密码：" + str(password) + " 用户保存的密码：" + str(is_null[1]) + " 比对结果：" + str(password == is_null[1]))
+    password = hashlib.sha256((password + is_null[3]).encode('utf-8')).hexdigest()
+    logger.debug("密码比对：" + "用户输入密码：" + str(password) + " 用户保存的密码：" + str(is_null[2]) + " 比对结果：" + str(password == is_null[2]))
     # 比对用户密码
-    if password == is_null[1]:
+    if password == is_null[2]:
         data["code"] = 9000
         data["msg"] = "账号登录成功！"
         data["result"] = True
@@ -72,16 +72,16 @@ def login():
         # }
         response = Response(json.dumps(data), content_type='application/json')
         # 处理uuid，加密
-        uuid = hashlib.md5((str(is_null[5]) + is_null[2]).encode('utf-8')).hexdigest()
+        uuid = hashlib.md5((is_null[1] + is_null[2] + str(is_null[0]) + is_null[3]).encode('utf-8')).hexdigest()
         response.set_cookie('uuid', uuid, max_age=settings.Config.cookies_timeout)
-        response.set_cookie('username', is_null[0], max_age=settings.Config.cookies_timeout)
+        response.set_cookie('username', is_null[1], max_age=settings.Config.cookies_timeout)
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))
         # 如果开启jwt，使用jwt方式，生成token，并且返回
         if settings.Config.jwt_on == 1:
             token = JWT_USER.create_token({
                 "uuid": uuid,
-                "username": is_null[0],
+                "username": is_null[1],
                 "tmp": int(round(time.time() * 1000))  # 当前token生成时间
             })
             response.set_cookie('token', token, max_age=settings.Config.cookies_timeout)

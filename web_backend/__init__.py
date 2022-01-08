@@ -10,6 +10,7 @@ from web_backend.logger_text.logger_text import log
 from web_backend.error_text.error_text import APIException, ServerError, HTTPException
 from web_backend.task_auto.views import task_auto
 from web_backend.task_auto.customt_hread import start_thread
+from flask_cors import CORS
 
 app = Flask(__name__)
 
@@ -17,6 +18,8 @@ app = Flask(__name__)
 lists = ['/login']
 # 日志处理
 logger = log()
+
+cors = CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 
 @app.before_request

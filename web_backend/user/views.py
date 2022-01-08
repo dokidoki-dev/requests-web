@@ -77,12 +77,14 @@ def login():
         response.set_cookie('username', is_null[0], max_age=settings.Config.cookies_timeout)
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))
-        token = JWT_USER.create_token({
-            "uuid": uuid,
-            "username": is_null[0],
-            "tmp": int(round(time.time() * 1000))  # 当前token生成时间
-        })
-        response.set_cookie('token', token, max_age=settings.Config.cookies_timeout)
+        # 如果开启jwt，使用jwt方式，生成token，并且返回
+        if settings.Config.jwt_on == 1:
+            token = JWT_USER.create_token({
+                "uuid": uuid,
+                "username": is_null[0],
+                "tmp": int(round(time.time() * 1000))  # 当前token生成时间
+            })
+            response.set_cookie('token', token, max_age=settings.Config.cookies_timeout)
         return response
     else:
         data["code"] = 9995
@@ -190,13 +192,17 @@ def user_list():
     }
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
-    # 判断是否管理员
-    # u_name = request.cookies.get('username')
-    # token此处一定不会为空
-    token = request.cookies.get("token", None)
-    token_payload = base64.b64decode(token.split(".")[1]).decode()
-    token_payload = ast.literal_eval(token_payload)
-    u_name = token_payload["username"]
+    # 根据jwt开启方式，判断走哪种方式读取用户信息
+    u_name = None
+    if settings.Config.jwt_on == 1:
+        # 判断是否管理员
+        # token此处一定不会为空
+        token = request.cookies.get("token", None)
+        token_payload = base64.b64decode(token.split(".")[1]).decode()
+        token_payload = ast.literal_eval(token_payload)
+        u_name = token_payload["username"]
+    else:
+        u_name = request.cookies.get('username')
     select = "select is_admin from user_info where u_name=%s and is_delete=0 and is_active=1"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0 and is_active=1".format(u_name))
     s = pymysql.SQLMysql()
@@ -297,13 +303,17 @@ def user_delete():
         data["code"] = 9598
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
-    # 判断是否管理员
-    # user_name = request.cookies.get('username')
-    # token此处一定不会为空
-    token = request.cookies.get("token", None)
-    token_payload = base64.b64decode(token.split(".")[1]).decode()
-    token_payload = ast.literal_eval(token_payload)
-    user_name = token_payload["username"]
+    # 根据jwt开启方式，判断走哪种方式读取用户信息
+    user_name = None
+    if settings.Config.jwt_on == 1:
+        # 判断是否管理员
+        # token此处一定不会为空
+        token = request.cookies.get("token", None)
+        token_payload = base64.b64decode(token.split(".")[1]).decode()
+        token_payload = ast.literal_eval(token_payload)
+        user_name = token_payload["username"]
+    else:
+        user_name = request.cookies.get('username')
     select = "select is_admin from user_info where u_name=%s and is_delete=0"
     sql = "update user_info set is_delete=1, delete_time=now() where u_name=%s and is_delete=0"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0".format(user_name))
@@ -371,13 +381,17 @@ def user_update():
     password = hashlib.sha256((password[0] + salt).encode('utf-8')).hexdigest()
     s = pymysql.SQLMysql()
     sql_s = "update user_info set u_password=%s, u_phone=%s, is_active=%s, u_salt=%s, modfiy_time=now() where u_name=%s and is_delete=0"
-    # 判断是否管理员
-    # user_name = request.cookies.get('username')
-    # token此处一定不会为空
-    token = request.cookies.get("token", None)
-    token_payload = base64.b64decode(token.split(".")[1]).decode()
-    token_payload = ast.literal_eval(token_payload)
-    user_name = token_payload["username"]
+    # 根据jwt开启方式，判断走哪种方式读取用户信息
+    user_name = None
+    if settings.Config.jwt_on == 1:
+        # 判断是否管理员
+        # token此处一定不会为空
+        token = request.cookies.get("token", None)
+        token_payload = base64.b64decode(token.split(".")[1]).decode()
+        token_payload = ast.literal_eval(token_payload)
+        user_name = token_payload["username"]
+    else:
+        user_name = request.cookies.get('username')
     select = "select is_admin from user_info where u_name=%s and is_delete=0"
     logger.debug("select is_admin from user_info where u_name={} and is_delete=0".format(user_name))
     is_null = s.query_one(select, [user_name, ])
@@ -435,7 +449,15 @@ def user_updatepd():
         return Response(json.dumps(data), content_type='application/json')
     password_old = request.json.get('password_old', "")
     password_new = request.json.get('password_new', "")
-    username = request.cookies.get('username', None)
+    # 根据认证方式，读取用户名
+    username = None
+    if settings.Config.jwt_on == 1:
+        token = request.cookies.get("token", None)
+        token_payload = base64.b64decode(token.split(".")[1]).decode()
+        token_payload = ast.literal_eval(token_payload)
+        username = token_payload["username"]
+    else:
+        username = request.cookies.get('username', None)
     pattern = re.compile(r'^(?=.*\d)(?=.*[a-zA-Z]).{6,15}$')
     password_old = pattern.search(str(password_old))
     password_new = pattern.search(str(password_new))

@@ -1,5 +1,7 @@
 # 配置文件
 class Config:
+    # 用户认证方式： 1 开启jwt认证   0 关闭jwt认证
+    jwt_on = 1
     # 设置jwt加密盐
     jwt_salt = "jzsdk!@'.,/390se8wq28~%$#*abvvcgfm,jkjk*()&*%$djks__+_=-=dskl?><Llskla[]ksoasap134w9w30"
     jwt_token_timeout = 24   # 小时制

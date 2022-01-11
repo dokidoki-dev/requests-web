@@ -32,14 +32,3 @@ def start_thread() -> None:
         t = CustomThread(q, daemon=True)
         # 开始启动线程
         t.start()
-
-
-def a(a, b):
-    print(a + b)
-    return a + b
-
-
-if __name__ == '__main__':
-    q.put((a, 1, 2))
-    c = CustomThread(q)
-    c.run()

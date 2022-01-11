@@ -1,8 +1,6 @@
 import threading
 from web_backend.auto_queue.t_queue import auto_queue
 from web_backend.logger_text.logger_text import log
-from mysql.pymysql import SQLMysql
-from request_auto import request_auto
 
 logger = log()
 q = auto_queue()

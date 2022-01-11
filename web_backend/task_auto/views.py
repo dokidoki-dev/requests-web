@@ -5,7 +5,7 @@ from web_backend.logger_text.logger_text import log
 from flask import Blueprint, request, Response
 from mysql.pymysql import SQLMysql
 from web_backend.auto_queue.t_queue import auto_queue
-from request_auto import request_auto
+from web_backend.task_auto.case_autorun import request_auto
 
 q = auto_queue()
 task_auto = Blueprint('task_auto', __name__, url_prefix="/api/v1/task")
@@ -111,7 +111,8 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         # 放入队列
-        q.put((request_auto, [lists.values()]))
+        q.put((request_auto, list(lists.values())[:]))
+        logger.debug(list(lists.values())[:])
         data["code"] = 30009
         data["msg"] = "添加成功"
         data["result"] = True

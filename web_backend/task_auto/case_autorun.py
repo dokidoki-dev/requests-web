@@ -197,10 +197,11 @@ def eval_assert(item: object, num: int, a_mode, a_data_list, a_result_data) -> b
     return result
 
 
-def request_auto(item: object):
+def request_auto(item: list):
     """
     依赖只支持去读依赖接口返回值
     """
+    print(item)
     case_id, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = item
     # 数据处理 转换为字典   params    request_data
     if params is None:
@@ -258,7 +259,7 @@ def request_auto(item: object):
                     logger.debug(
                         "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                             status_code, li, case_id))
-                    ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                    ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
                     if not ok:
                         logger.error("数据库更新数据未知异常")
                     return False
@@ -271,7 +272,7 @@ def request_auto(item: object):
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                         status_code, a_status, li, case_id))
-                ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+                ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
                 if ok:
                     return True
                 else:
@@ -291,7 +292,7 @@ def request_auto(item: object):
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                         status_code, li, case_id))
-                ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
                 if not ok:
                     logger.error("数据库更新数据未知异常")
                 return False
@@ -304,7 +305,7 @@ def request_auto(item: object):
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                     status_code, a_status, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+            ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -345,20 +346,21 @@ def request_auto(item: object):
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                     status_code, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, li, case_id, ])
+            ok = s.update_one(sql_p, [0, 2, status_code, str(li), case_id, ])
             if ok:
                 return True
             else:
                 return False
         # 不需要断言，不存在依赖
         r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+        logger.debug(r)
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
         logger.debug(
             "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                 status_code, li, case_id))
-        ok = s.update_one(sql_u, [0, 2, status_code, li, case_id, ])
+        ok = s.update_one(sql_u, [0, 2, status_code, str(li), case_id, ])
         if not ok:
             logger.error("更新用例结果失败")
             return False
@@ -404,7 +406,7 @@ def request_auto(item: object):
                     logger.debug(
                         "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                             status_code, li, case_id))
-                    ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                    ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
                     if not ok:
                         logger.error("数据库更新数据未知异常")
                     return False
@@ -417,7 +419,7 @@ def request_auto(item: object):
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                         status_code, a_status, li, case_id))
-                ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+                ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
                 if ok:
                     return True
                 else:
@@ -437,7 +439,7 @@ def request_auto(item: object):
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                         status_code, li, case_id))
-                ok = s.update_one(sql_i, [0, 2, status_code, 0, li, case_id, ])
+                ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
                 if not ok:
                     logger.error("数据库更新数据未知异常")
                 return False
@@ -450,7 +452,7 @@ def request_auto(item: object):
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                     status_code, a_status, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, a_status, li, case_id, ])
+            ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -491,7 +493,7 @@ def request_auto(item: object):
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                     status_code, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, li, case_id, ])
+            ok = s.update_one(sql_p, [0, 2, status_code, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -504,7 +506,7 @@ def request_auto(item: object):
         logger.debug(
             "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                 status_code, li, case_id))
-        ok = s.update_one(sql_u, [0, 2, status_code, li, case_id, ])
+        ok = s.update_one(sql_u, [0, 2, status_code, str(li), case_id, ])
         if not ok:
             logger.error("更新用例结果失败")
             return False

@@ -5,18 +5,11 @@ from web_backend.logger_text.logger_text import log
 from flask import Blueprint, request, Response
 from mysql.pymysql import SQLMysql
 from web_backend.auto_queue.t_queue import auto_queue
+from request_auto import request_auto
 
 q = auto_queue()
 task_auto = Blueprint('task_auto', __name__, url_prefix="/api/v1/task")
 logger = log()
-
-
-# 任务
-def task(taskId, consuming):
-    # print('工人【】正在处理任务【%d】：do something...' % taskId)
-    # 模拟任务耗时(秒)
-    time.sleep(consuming)
-    print('任务：done', taskId)
 
 
 @task_auto.route("/task_add", methods=["POST"])
@@ -118,7 +111,7 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         # 放入队列
-        q.put((task, lists))
+        q.put((request_auto, [lists]))
         data["code"] = 30009
         data["msg"] = "添加成功"
         data["result"] = True
@@ -144,7 +137,6 @@ def task_add():
             data["msg"] = "当前分组没有用例"
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
-        all = []
         for i in range(len(lists)):
             case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = lists[i]
             list_all = {
@@ -210,10 +202,8 @@ def task_add():
                 data["msg"] = "未知错误"
                 logger.info("返回信息" + str(data))
                 return Response(json.dumps(data), content_type='application/json')
-            all.append((task, list_all))
-        #  放入队列
-        for i in range(len(all)):
-            q.put((all[i]))
+            #  放入队列
+            q.put((request_auto, list_all))
         data["code"] = 30009
         data["msg"] = "添加成功"
         data["result"] = True

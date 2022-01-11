@@ -111,7 +111,7 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         # 放入队列
-        q.put((request_auto, [lists]))
+        q.put((request_auto, [lists.values()]))
         data["code"] = 30009
         data["msg"] = "添加成功"
         data["result"] = True
@@ -203,7 +203,7 @@ def task_add():
                 logger.info("返回信息" + str(data))
                 return Response(json.dumps(data), content_type='application/json')
             #  放入队列
-            q.put((request_auto, list_all))
+            q.put((request_auto, list_all.values()))
         data["code"] = 30009
         data["msg"] = "添加成功"
         data["result"] = True

@@ -197,11 +197,40 @@ def eval_assert(item: object, num: int, a_mode, a_data_list, a_result_data) -> b
     return result
 
 
+def request_get(url, header, params, request_data):
+    '''
+    封装get请求
+    :return: request对象
+    '''
+    try:
+        r = requests.get(url=url, headers=header, params=params, data=request_data, timeout=10)
+    except Exception as e:
+        logger.info("请求参数错误：" + str(e))
+        return None
+    else:
+        logger.info("接口返回数据：" + str(r.json()))
+        return r
+
+
+def request_post(url, header, params, request_data):
+    '''
+    封装post请求
+    :return: request对象
+    '''
+    try:
+        r = requests.post(url=url, headers=header, params=params, data=request_data, timeout=10)
+    except Exception as e:
+        logger.info("请求参数错误：" + str(e))
+        return None
+    else:
+        logger.info("接口返回数据：" + str(r.json()))
+        return r
+
+
 def request_auto(item: list):
     """
     依赖只支持去读依赖接口返回值
     """
-    print(item)
     case_id, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = item
     # 数据处理 转换为字典   params    request_data
     if params is None:
@@ -212,7 +241,7 @@ def request_auto(item: list):
         logger.info("request_data: None")
     else:
         request_data = ast.literal_eval(request_data)
-    sql = "update jk_testcase set sub_status=1 where case_id=%s"
+    sql = "update jk_testcase set sub_status=1, modfiy_time=now() where case_id=%s"
     # 更新用例状态
     s = SQLMysql()
     logger.debug("update jk_testcase set sub_status=1 where case_id={}".format(case_id))
@@ -220,6 +249,11 @@ def request_auto(item: list):
     if not ok:
         logger.error("更新用例子状态失败")
         return False
+    # 处理请求链接
+    if not path:
+        url = url
+    else:
+        url = url + path
     # 判断请求方式
     if method == "GET":
         # 判断当前是否是否需要断言
@@ -250,12 +284,16 @@ def request_auto(item: list):
                 except Exception as e:
                     logger.error(e)
                     return False
-                r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+                r = request_get(url, header, params, request_data)
+                if r is None:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 2, 201, case_id, ])
+                    return False
                 li = json.loads(r.text)
                 status_code = 200 if r.status_code == 200 else 201
                 if status_code != 200:
                     logger.error("接口返回状态码非200，无法断言")
-                    sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                    sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                     logger.debug(
                         "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                             status_code, li, case_id))
@@ -268,7 +306,7 @@ def request_auto(item: list):
                 num = len(a_data_list)
                 result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
                 a_status = 1 if result else 0
-                sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                         status_code, a_status, li, case_id))
@@ -282,13 +320,17 @@ def request_auto(item: list):
             da = s.query_one(sql, [rely_id, ])
             if not da:
                 logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
-                return
-            r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+                return False
+            r = request_get(url, header, params, request_data)
+            if r is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
             if status_code != 200:
                 logger.error("接口返回状态码非200，无法断言")
-                sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                         status_code, li, case_id))
@@ -301,7 +343,7 @@ def request_auto(item: list):
             num = len(a_data_list)
             result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
             a_status = 1 if result else 0
-            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                     status_code, a_status, li, case_id))
@@ -339,10 +381,14 @@ def request_auto(item: list):
             except Exception as e:
                 logger.error(e)
                 return False
-            r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+            r = request_get(url, header, params, request_data)
+            if r is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
-            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                     status_code, li, case_id))
@@ -352,11 +398,15 @@ def request_auto(item: list):
             else:
                 return False
         # 不需要断言，不存在依赖
-        r = requests.get(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
-        logger.debug(r)
+        r = request_get(url, header, params, request_data)
+        if r is None:
+            sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+            s.update_one(sql_f, [0, 2, 201, case_id, ])
+            return False
+        logger.debug(r.text)
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
-        sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+        sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
         logger.debug(
             "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                 status_code, li, case_id))
@@ -397,12 +447,16 @@ def request_auto(item: list):
                 except Exception as e:
                     logger.error(e)
                     return False
-                r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+                r = request_post(url, header, params, request_data)
+                if r is None:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 2, 201, case_id, ])
+                    return False
                 li = json.loads(r.text)
                 status_code = 200 if r.status_code == 200 else 201
                 if status_code != 200:
                     logger.error("接口返回状态码非200，无法断言")
-                    sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                    sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                     logger.debug(
                         "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                             status_code, li, case_id))
@@ -415,7 +469,7 @@ def request_auto(item: list):
                 num = len(a_data_list)
                 result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
                 a_status = 1 if result else 0
-                sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                         status_code, a_status, li, case_id))
@@ -429,13 +483,17 @@ def request_auto(item: list):
             da = s.query_one(sql, [rely_id, ])
             if not da:
                 logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
-                return
-            r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+                return False
+            r = request_post(url, header, params, request_data)
+            if r is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
             if status_code != 200:
                 logger.error("接口返回状态码非200，无法断言")
-                sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+                sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
                     "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
                         status_code, li, case_id))
@@ -448,7 +506,7 @@ def request_auto(item: list):
             num = len(a_data_list)
             result = eval_assert(li, num, a_mode, a_data_list, a_result_data)
             a_status = 1 if result else 0
-            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s where case_id=%s"
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
                     status_code, a_status, li, case_id))
@@ -486,10 +544,14 @@ def request_auto(item: list):
             except Exception as e:
                 logger.error(e)
                 return False
-            r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+            r = request_post(url, header, params, request_data)
+            if r is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
-            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+            sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
                 "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                     status_code, li, case_id))
@@ -499,10 +561,14 @@ def request_auto(item: list):
             else:
                 return False
         # 不需要断言，不存在依赖
-        r = requests.post(url=(url + "/" + path), headers=header, params=params, data=request_data, timeout=10)
+        r = request_post(url, header, params, request_data)
+        if r is None:
+            sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+            s.update_one(sql_f, [0, 2, 201, case_id, ])
+            return False
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
-        sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s where case_id=%s"
+        sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
         logger.debug(
             "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
                 status_code, li, case_id))

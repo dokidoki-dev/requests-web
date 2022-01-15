@@ -6,7 +6,6 @@ import json
 import mysql.pymysql as pymysql
 import re
 import hashlib
-
 import settings
 from web_backend.user import logic
 from web_backend.logger_text.logger_text import log

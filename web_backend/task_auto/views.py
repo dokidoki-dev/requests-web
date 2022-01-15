@@ -1,6 +1,5 @@
 import ast
 import json
-import time
 from web_backend.logger_text.logger_text import log
 from flask import Blueprint, request, Response
 from mysql.pymysql import SQLMysql

@@ -9,6 +9,9 @@ from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
 from web_backend.error_text.error_text import APIException, ServerError, HTTPException
 from web_backend.jwt_token.jwt_token import JWT_USER
+from web_backend.task_auto.views import task_auto
+from web_backend.task_auto.customt_hread import start_thread
+from flask_cors import CORS
 
 app = Flask(__name__)
 
@@ -16,6 +19,8 @@ app = Flask(__name__)
 lists = ['/api/v1/user/login']
 # 日志处理
 logger = log()
+
+cors = CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 
 @app.before_request
@@ -92,10 +97,12 @@ def framework_error(e):
 
 
 def create_app():
+    start_thread()
     # 导入配置文件
     app.config.from_object(settings.Development)
     # 注册蓝图
     app.register_blueprint(user)
     app.register_blueprint(env_variable)
     app.register_blueprint(test_cases)
+    app.register_blueprint(task_auto)
     return app

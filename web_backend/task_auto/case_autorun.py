@@ -287,7 +287,7 @@ def request_auto(item: list):
                 r = request_get(url, header, params, request_data)
                 if r is None:
                     sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-                    s.update_one(sql_f, [0, 2, 201, case_id, ])
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     return False
                 li = json.loads(r.text)
                 status_code = 200 if r.status_code == 200 else 201
@@ -295,9 +295,9 @@ def request_auto(item: list):
                     logger.error("接口返回状态码非200，无法断言")
                     sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                     logger.debug(
-                        "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                        "update jk_testcase set status=0, sub_status=0, result_code={}, a_status=0, result_data={} where case_id={}".format(
                             status_code, li, case_id))
-                    ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
+                    ok = s.update_one(sql_i, [0, 0, status_code, 0, str(li), case_id, ])
                     if not ok:
                         logger.error("数据库更新数据未知异常")
                     return False
@@ -308,9 +308,9 @@ def request_auto(item: list):
                 a_status = 1 if result else 0
                 sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
-                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                    "update jk_testcase set status=0, sub_status=0, result_code={}, a_status={}, result_data={} where case_id={}".format(
                         status_code, a_status, li, case_id))
-                ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
+                ok = s.update_one(sql_p, [0, 0, status_code, a_status, str(li), case_id, ])
                 if ok:
                     return True
                 else:
@@ -324,7 +324,7 @@ def request_auto(item: list):
             r = request_get(url, header, params, request_data)
             if r is None:
                 sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
@@ -332,9 +332,9 @@ def request_auto(item: list):
                 logger.error("接口返回状态码非200，无法断言")
                 sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
-                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                    "update jk_testcase set status=0, sub_status=0, result_code={}, a_status=0, result_data={} where case_id={}".format(
                         status_code, li, case_id))
-                ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
+                ok = s.update_one(sql_i, [0, 0, status_code, 0, str(li), case_id, ])
                 if not ok:
                     logger.error("数据库更新数据未知异常")
                 return False
@@ -345,9 +345,9 @@ def request_auto(item: list):
             a_status = 1 if result else 0
             sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
-                "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                "update jk_testcase set status=0, sub_status=0, result_code={}, a_status={}, result_data={} where case_id={}".format(
                     status_code, a_status, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
+            ok = s.update_one(sql_p, [0, 0, status_code, a_status, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -384,15 +384,15 @@ def request_auto(item: list):
             r = request_get(url, header, params, request_data)
             if r is None:
                 sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
             sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
-                "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+                "update jk_testcase set status=0, sub_status=0, result_code={}, result_data={} where case_id={}".format(
                     status_code, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, str(li), case_id, ])
+            ok = s.update_one(sql_p, [0, 0, status_code, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -401,16 +401,16 @@ def request_auto(item: list):
         r = request_get(url, header, params, request_data)
         if r is None:
             sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-            s.update_one(sql_f, [0, 2, 201, case_id, ])
+            s.update_one(sql_f, [0, 0, 201, case_id, ])
             return False
         logger.debug(r.text)
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
         logger.debug(
-            "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+            "update jk_testcase set status=0, sub_status=0, result_code={}, result_data={} where case_id={}".format(
                 status_code, li, case_id))
-        ok = s.update_one(sql_u, [0, 2, status_code, str(li), case_id, ])
+        ok = s.update_one(sql_u, [0, 0, status_code, str(li), case_id, ])
         if not ok:
             logger.error("更新用例结果失败")
             return False
@@ -450,7 +450,7 @@ def request_auto(item: list):
                 r = request_post(url, header, params, request_data)
                 if r is None:
                     sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-                    s.update_one(sql_f, [0, 2, 201, case_id, ])
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     return False
                 li = json.loads(r.text)
                 status_code = 200 if r.status_code == 200 else 201
@@ -458,9 +458,9 @@ def request_auto(item: list):
                     logger.error("接口返回状态码非200，无法断言")
                     sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                     logger.debug(
-                        "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                        "update jk_testcase set status=0, sub_status=0, result_code={}, a_status=0, result_data={} where case_id={}".format(
                             status_code, li, case_id))
-                    ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
+                    ok = s.update_one(sql_i, [0, 0, status_code, 0, str(li), case_id, ])
                     if not ok:
                         logger.error("数据库更新数据未知异常")
                     return False
@@ -471,9 +471,9 @@ def request_auto(item: list):
                 a_status = 1 if result else 0
                 sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
-                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                    "update jk_testcase set status=0, sub_status=0, result_code={}, a_status={}, result_data={} where case_id={}".format(
                         status_code, a_status, li, case_id))
-                ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
+                ok = s.update_one(sql_p, [0, 0, status_code, a_status, str(li), case_id, ])
                 if ok:
                     return True
                 else:
@@ -487,7 +487,7 @@ def request_auto(item: list):
             r = request_post(url, header, params, request_data)
             if r is None:
                 sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
@@ -495,9 +495,9 @@ def request_auto(item: list):
                 logger.error("接口返回状态码非200，无法断言")
                 sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                 logger.debug(
-                    "update jk_testcase set status=0, sub_status=2, result_code={}, a_status=0, result_data={} where case_id={}".format(
+                    "update jk_testcase set status=0, sub_status=0, result_code={}, a_status=0, result_data={} where case_id={}".format(
                         status_code, li, case_id))
-                ok = s.update_one(sql_i, [0, 2, status_code, 0, str(li), case_id, ])
+                ok = s.update_one(sql_i, [0, 0, status_code, 0, str(li), case_id, ])
                 if not ok:
                     logger.error("数据库更新数据未知异常")
                 return False
@@ -508,9 +508,9 @@ def request_auto(item: list):
             a_status = 1 if result else 0
             sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
-                "update jk_testcase set status=0, sub_status=2, result_code={}, a_status={}, result_data={} where case_id={}".format(
+                "update jk_testcase set status=0, sub_status=0, result_code={}, a_status={}, result_data={} where case_id={}".format(
                     status_code, a_status, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, a_status, str(li), case_id, ])
+            ok = s.update_one(sql_p, [0, 0, status_code, a_status, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -547,15 +547,15 @@ def request_auto(item: list):
             r = request_post(url, header, params, request_data)
             if r is None:
                 sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-                s.update_one(sql_f, [0, 2, 201, case_id, ])
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 return False
             li = json.loads(r.text)
             status_code = 200 if r.status_code == 200 else 201
             sql_p = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
             logger.debug(
-                "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+                "update jk_testcase set status=0, sub_status=0, result_code={}, result_data={} where case_id={}".format(
                     status_code, li, case_id))
-            ok = s.update_one(sql_p, [0, 2, status_code, str(li), case_id, ])
+            ok = s.update_one(sql_p, [0, 0, status_code, str(li), case_id, ])
             if ok:
                 return True
             else:
@@ -564,15 +564,15 @@ def request_auto(item: list):
         r = request_post(url, header, params, request_data)
         if r is None:
             sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
-            s.update_one(sql_f, [0, 2, 201, case_id, ])
+            s.update_one(sql_f, [0, 0, 201, case_id, ])
             return False
         li = json.loads(r.text)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
         logger.debug(
-            "update jk_testcase set status=0, sub_status=2, result_code={}, result_data={} where case_id={}".format(
+            "update jk_testcase set status=0, sub_status=0, result_code={}, result_data={} where case_id={}".format(
                 status_code, li, case_id))
-        ok = s.update_one(sql_u, [0, 2, status_code, str(li), case_id, ])
+        ok = s.update_one(sql_u, [0, 0, status_code, str(li), case_id, ])
         if not ok:
             logger.error("更新用例结果失败")
             return False

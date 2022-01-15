@@ -47,7 +47,7 @@ CREATE TABLE `jk_testcase` (
   `url` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '请求链接',
   `params` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'params参数',
   `status` int(2) NOT NULL DEFAULT '0' COMMENT '状态码 0 处于未执行队列   1处于执行中队列  默认0',
-  `sub_status` int(2) NOT NULL DEFAULT '0' COMMENT '子状态码 0 未执行  1执行中  2 执行成功  默认0',
+  `sub_status` int(2) NOT NULL DEFAULT '0' COMMENT '子状态码 0 未执行  1执行中  默认0',
   `result_code` int(5) NOT NULL DEFAULT '0' COMMENT '本次用例执行结果状态码   200执行成功  201执行失败  0未执行',
   `is_assert` int(2) NOT NULL DEFAULT '0' COMMENT '是否断言  0 不断言 1需要断言  默认0',
   `a_data` varchar(1000) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '断言数据',

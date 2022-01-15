@@ -403,8 +403,8 @@ def request_auto(item: list):
             sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
             s.update_one(sql_f, [0, 0, 201, case_id, ])
             return False
-        logger.debug(r.text)
         li = json.loads(r.text)
+        logger.debug(li)
         status_code = 200 if r.status_code == 200 else 201
         sql_u = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, result_data=%s, modfiy_time=now() where case_id=%s"
         logger.debug(

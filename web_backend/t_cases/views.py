@@ -616,7 +616,7 @@ def t_lists():
     :return:
     '''
     data = {
-        "object": None,
+        "object": [],
         "msg": "缺少参数",
         "code": 10000,
         "result": False

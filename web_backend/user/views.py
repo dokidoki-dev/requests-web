@@ -72,8 +72,8 @@ def login():
         response = Response(json.dumps(data), content_type='application/json')
         # 处理uuid，加密
         uuid = hashlib.md5((is_null[1] + is_null[2] + str(is_null[0]) + is_null[3]).encode('utf-8')).hexdigest()
-        response.set_cookie('uuid', uuid, max_age=settings.Config.cookies_timeout, domain='0.0.0.0')
-        response.set_cookie('username', is_null[1], max_age=settings.Config.cookies_timeout, domain='0.0.0.0')
+        response.set_cookie('uuid', uuid, max_age=settings.Config.cookies_timeout, domain='192.168.150.1')
+        response.set_cookie('username', is_null[1], max_age=settings.Config.cookies_timeout, domain='192.168.150.1')
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))
         # 如果开启jwt，使用jwt方式，生成token，并且返回
@@ -83,7 +83,7 @@ def login():
                 "username": is_null[1],
                 "tmp": int(round(time.time() * 1000))  # 当前token生成时间
             })
-            response.set_cookie('token', token, max_age=settings.Config.cookies_timeout, domain='0.0.0.0')
+            response.set_cookie('token', token, max_age=settings.Config.cookies_timeout, domain='192.168.150.1')
         return response
     else:
         data["code"] = 9995

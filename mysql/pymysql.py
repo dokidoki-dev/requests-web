@@ -4,7 +4,7 @@ from web_backend.logger_text.logger_text import log
 logger = log()
 
 mysql_config = {
-    "host": "127.0.0.1",
+    "host": "192.168.0.102",
     "post": 3306,
     "user": "root",
     "passwd": "shenyongfu",

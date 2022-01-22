@@ -3,6 +3,7 @@ pymysql~=1.0.2
 flask_cors~=3.0.10
 flask_script~=2.0.6
 gunicorn
+requests~=2.25.1
 gevent
 eventlet
 greenlet

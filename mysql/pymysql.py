@@ -4,10 +4,10 @@ from web_backend.logger_text.logger_text import log
 logger = log()
 
 mysql_config = {
-    "host": "10.43.1.7",
+    "host": "127.0.0.1",
     "post": 3306,
     "user": "root",
-    "passwd": "liebao123",
+    "passwd": "shenyongfu",
     "db": "request_web"
 }
 

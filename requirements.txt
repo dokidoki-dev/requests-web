@@ -1,9 +1,12 @@
 flask~=1.1.4
 pymysql~=1.0.2
-flask_cors
-flask_script
+flask_cors~=3.0.10
+flask_script~=2.0.6
 gunicorn
 gevent
+eventlet
+greenlet
+setuptools
 loguru~=0.5.3
 Werkzeug~=1.0.1
 PyJWT~=2.3.0

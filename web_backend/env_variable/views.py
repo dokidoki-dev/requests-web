@@ -134,7 +134,7 @@ def env_var():
 @env_variable.route('/g_lists', methods=['GET'])
 def env_g_lists():
     data = {
-        "object": None,
+        "object": [],
         "msg": "缺少参数",
         "code": 10000,
         "result": False
@@ -145,7 +145,7 @@ def env_g_lists():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     page = request.args.get("page", 1, type=int)
-    limit = request.args.get("limit", 10, type=int)
+    limit = request.args.get("limit", 20, type=int)
     s = SQLMysql()
     sql = "select group_name from jk_vgroups limit %s, %s"
     logger.debug("select group_name from jk_vgroups limit {}, {}".format((page-1), limit))

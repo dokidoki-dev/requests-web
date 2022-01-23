@@ -1,3 +1,4 @@
+import ast
 import json
 import re
 from flask import Blueprint, request, Response
@@ -667,6 +668,22 @@ def t_lists():
     list_all =[]
     for i in range(len(li)):
         sort, case_id, case_name, method, path, url, params, status, is_assert, is_rely_on, rely_id, header, request_data, group_name = li[i]
+        # 处理header url
+        if header:
+            header = ast.literal_eval(header)
+        if url:
+            url = ast.literal_eval(url)
+        # 处理环境变量的问题
+        if url and url["mode"] == "env":
+            sql_un = "select v_data from jk_variable from where v_name=%s"
+            url = s.query_one(sql_un, [url["data"], ])[0]
+        elif url and url["mode"] == "un_env":
+            url = url["data"]
+        if header and header["mode"] == "env":
+            sql_un = "select v_data from jk_variable from where v_name=%s"
+            header = s.query_one(sql_un, [header["data"], ])[0]
+        elif header and header["mode"] == "un_env":
+            header = header["data"]
         list_all.append({
             "case_id": case_id,
             "sort": sort,

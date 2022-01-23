@@ -81,6 +81,15 @@ def t_addcases():
             return Response(json.dumps(data), content_type='application/json')
     sort = sort if isinstance(sort, int) else None  # int
     request_data = request.json.get("request_data", None)
+    # 处理path
+    if path:
+        pattern = re.compile(r'^[/]')
+        is_path = pattern.search(str(path))
+        if not is_path:
+            data["msg"] = "参数非法"
+            data["code"] = 20001
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
     # 判断当前是否需要使用虚拟环境变量
     if not header or not url:
         if not env_url and not env_header:
@@ -340,6 +349,15 @@ def t_updatecases():
         logger.info("params: None")
     else:
         if not isinstance(params, dict):
+            data["msg"] = "参数非法"
+            data["code"] = 20001
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
+    # 处理path
+    if path:
+        pattern = re.compile(r'^[/]')
+        is_path = pattern.search(str(path))
+        if not is_path:
             data["msg"] = "参数非法"
             data["code"] = 20001
             logger.info("返回信息" + str(data))

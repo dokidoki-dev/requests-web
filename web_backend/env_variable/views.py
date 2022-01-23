@@ -133,6 +133,10 @@ def env_var():
 
 @env_variable.route('/g_lists', methods=['GET'])
 def env_g_lists():
+    """
+    查询环境变量分组接口
+    :return:
+    """
     data = {
         "object": [],
         "msg": "缺少参数",
@@ -141,7 +145,7 @@ def env_g_lists():
     }
     # 处理没有传参的问题
     if not request.args:
-        logger.debug("request.json: " + str(request.json))
+        logger.debug("request.args: " + str(request.args))
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     page = request.args.get("page", 1, type=int)

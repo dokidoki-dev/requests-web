@@ -840,3 +840,205 @@ def t_result():
     data["code"] = 20502
     logger.info("返回信息" + str(data))
     return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route('/add_group', methods=['POST'])
+def env_add_group():
+    '''
+    添加测试用例分组
+    :return:
+    '''
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False,
+    }
+    # 处理缺少参数问题
+    if not request.json:
+        logger.debug("request.json: " + str(request.json))
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    group_name = request.json.get('group_name', None)
+    if not group_name:
+        data["msg"] = "缺少参数"
+        data["code"] = 7899
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    s = SQLMysql()
+    sql = "select group_id from jk_cgroups where group_name=%s"
+    logger.debug("select group_id from jk_cgroups where group_name={}".format(group_name))
+    # 判断当前是否已经存在分组
+    is_null = s.query_one(sql, [group_name, ])
+    logger.debug("查询结果：" + str(is_null))
+    if is_null:
+        data["msg"] = "当前分组已存在，请勿重复添加"
+        data["code"] = 7898
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    sql_add = "insert into jk_cgroups (group_name, create_time) values (%s, now())"
+    logger.debug("insert into jk_cgroups (group_name, create_time) values ({}, now())".format(group_name))
+    ok = s.create_one(sql_add, [group_name, ])
+    if ok:
+        data["msg"] = "添加成功"
+        data["code"] = 7897
+        data["result"] = True
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        data["msg"] = "未知异常"
+        data["code"] = 7896
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route('/g_lists', methods=['GET'])
+def env_g_lists():
+    """
+    查询测试用例分组接口
+    :return:
+    """
+    data = {
+        "object": [],
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.args:
+        logger.debug("request.args: " + str(request.args))
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 20, type=int)
+    s = SQLMysql()
+    sql = "select group_name from jk_cgroups limit %s, %s"
+    logger.debug("select group_name from jk_cgroups limit {}, {}".format((page-1), limit))
+    li = s.query_all(sql, [(page - 1), limit, ])
+    logger.debug("查询结果：" + str(li))
+    if not li:
+        data["msg"] = "暂无数据"
+        data["code"] = 7594
+        data["result"] = True
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    list_n = []
+    for i in range(len(li)):
+        group_name = li[i][0]
+        list_n.append({
+            "group_name": group_name
+        })
+    data["object"] = list_n
+    data["msg"] = "查询成功"
+    data["code"] = 7593
+    data["result"] = True
+    logger.info("返回信息" + str(data))
+    return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route('/update_g', methods=['POST'])
+def env_update_g():
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        logger.debug("request.json: " + str(request.json))
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    group_id = request.json.get('group_id', None)
+    group_name = request.json.get('group_name', None)
+    if not group_id or not group_name:
+        data["msg"] = "参数非法"
+        data["code"] = 7699
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    s = SQLMysql()
+    # 判断修改的分组是否存在
+    sql_y = "select group_id from jk_cgroups where group_name=%s"
+    logger.debug("select group_id from jk_cgroups where group_name={}".format(group_name))
+    is_null = s.query_one(sql_y, [group_name, ])
+    logger.debug("查询结果：" + str(is_null))
+    if not is_null:
+        data["msg"] = "分组不存在"
+        data["code"] = 7698
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    if is_null[0] != group_id:
+        data["msg"] = "参数非法"
+        data["code"] = 7698
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    sql = "update jk_cgroups set group_name=%s, modfiy_time=now() where group_id=%s"
+    ok = s.update_one(sql, [group_name, group_id, ])
+    if ok:
+        data["msg"] = "修改成功"
+        data["code"] = 7696
+        data["result"] = True
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        data["msg"] = "未知异常"
+        data["code"] = 7795
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+
+
+@test_cases.route('/delete_g', methods=['POST'])
+def env_delete_g():
+    data = {
+        "object": None,
+        "msg": "缺少参数",
+        "code": 10000,
+        "result": False
+    }
+    # 处理没有传参的问题
+    if not request.json:
+        logger.debug("request.json: " + str(request.json))
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    group_id = request.json.get('group_id', None)
+    if not group_id:
+        data["msg"] = "参数非法"
+        data["code"] = 7599
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    s = SQLMysql()
+    # 判断当前分组是否存在
+    sql_s = "select group_id from jk_cgroups where group_id=%s"
+    logger.debug("select group_id from jk_cgroups where group_id={}".format(group_id))
+    is_null = s.query_one(sql_s, [group_id, ])
+    logger.debug("查询结果：" + str(is_null))
+    if not is_null:
+        data["msg"] = "分组数据不存在，删除失败"
+        data["code"] = 7598
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    # 判断该分组下，是否还有测试用例，如果有的话，不允许删除分组 保证数据完整性
+    sql_y = "select case_id from jk_testcase where group_id=%s"
+    logger.debug("select case_id from jk_testcase where group_id={}".format(is_null[0]))
+    is_n = s.query_one(sql_y, [(is_null[0]), ])
+    logger.debug("查询结果：" + str(is_n))
+    if is_n:
+        data["msg"] = "当前分组下存在关联测试用例，无法删除，请先删除该分组下的所有测试用例"
+        data["code"] = 7597
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    # 如果不存在测试用例，则可以直接删除
+    sql_del = "delete from jk_cgroups where group_id=%s"
+    logger.debug("delete from jk_cgroups where group_id={}".format(is_null[0]))
+    ok = s.update_one(sql_del, [(is_null[0]), ])
+    if ok:
+        data["msg"] = "删除成功"
+        data["code"] = 7596
+        data["result"] = True
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        data["msg"] = "未知异常"
+        data["code"] = 7595
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')

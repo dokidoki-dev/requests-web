@@ -140,7 +140,7 @@ def env_g_lists():
         "result": False
     }
     # 处理没有传参的问题
-    if not request.json:
+    if not request.args:
         logger.debug("request.json: " + str(request.json))
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')

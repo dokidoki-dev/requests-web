@@ -650,6 +650,17 @@ def t_lists():
     case_id = request.args.get("case_id", None)
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
+    # 处理数据库数据分页问题
+    if page < 1 or limit < 1:
+        data["msg"] = "参数非法"
+        data["code"] = 7998
+        data["result"] = False
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    if page != 1:
+        page = (page - 1) + limit
+    else:
+        page = page - 1
     s = SQLMysql()
     if group_name:
         sql = "select group_id from jk_cgroups where group_name=%s"
@@ -664,17 +675,17 @@ def t_lists():
         else:
             group_name = group_id[0]
     sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s or t.case_id=%s or t.case_name like %s limit %s, %s"
-    logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_id={} or t.case_name like {} limit {}, {}".format(group_name, case_id, ('%' + str(case_name) + '%'), (page - 1), limit))
-    queryp = [group_name, case_id, ('%' + str(case_name) + '%'), (page - 1), limit, ]
+    logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_id={} or t.case_name like {} limit {}, {}".format(group_name, case_id, ('%' + str(case_name) + '%'), page, limit))
+    queryp = [group_name, case_id, ('%' + str(case_name) + '%'), page, limit, ]
     if case_id is None:
         if case_name is None:
             sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s  limit %s, %s"
-            logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={}  limit {}, {}".format(group_name, (page - 1), limit))
-            queryp = [group_name, (page - 1), limit, ]
+            logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={}  limit {}, {}".format(group_name, page, limit))
+            queryp = [group_name, page, limit, ]
         else:
             sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s or t.case_name like %s limit %s, %s"
-            logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_name like {} limit {}, {}".format(group_name, ('%' + str(case_name) + '%'), (page - 1), limit))
-            queryp = [group_name, ('%' + str(case_name) + '%'), (page - 1), limit, ]
+            logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_name like {} limit {}, {}".format(group_name, ('%' + str(case_name) + '%'), page, limit))
+            queryp = [group_name, ('%' + str(case_name) + '%'), page, limit, ]
     li = s.query_all(sql, queryp)
     logger.debug("查询信息：" + str(li))
     if not li:
@@ -911,10 +922,21 @@ def env_g_lists():
         return Response(json.dumps(data), content_type='application/json')
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 20, type=int)
+    # 处理数据库数据分页问题
+    if page < 1 or limit < 1:
+        data["msg"] = "参数非法"
+        data["code"] = 7998
+        data["result"] = False
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    if page != 1:
+        page = (page - 1) + limit
+    else:
+        page = page - 1
     s = SQLMysql()
     sql = "select group_name from jk_cgroups limit %s, %s"
-    logger.debug("select group_name from jk_cgroups limit {}, {}".format((page-1), limit))
-    li = s.query_all(sql, [(page - 1), limit, ])
+    logger.debug("select group_name from jk_cgroups limit {}, {}".format(page, limit))
+    li = s.query_all(sql, [page, limit, ])
     logger.debug("查询结果：" + str(li))
     if not li:
         data["msg"] = "暂无数据"

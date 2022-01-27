@@ -29,6 +29,17 @@ def env_var():
     s_all = "select group_id from jk_vgroups"
     sql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s and v_data like %s"
     s_csql = "select v_id, v_name, v_data, group_id from jk_variable where group_id=%s"
+    # 处理数据库数据分页问题
+    if page < 1 or limit < 1:
+        data["msg"] = "参数非法"
+        data["code"] = 7998
+        data["result"] = False
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    if page != 1:
+        page = (page - 1) + limit
+    else:
+        page = page - 1
     if group_name is None:
         # 如果为空，返回全部内容，根据数量限制
         # 查询是否存在环境变量分组
@@ -43,8 +54,8 @@ def env_var():
             return Response(json.dumps(data), content_type='application/json')
         else:
             a_sql = "select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1 limit %s, %s"
-            logger.debug("select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1 limit {}, {}".format((page-1), limit))
-            l_n = s.query_all(a_sql, [(page - 1), limit, ])
+            logger.debug("select v.v_id, v.v_name, v.v_data, g.group_name from jk_vgroups g, jk_variable v WHERE v.group_id=g.group_id and g.status=1 limit {}, {}".format(page, limit))
+            l_n = s.query_all(a_sql, [page, limit, ])
             if not l_n:
                 data["msg"] = "暂无数据"
                 data["code"] = 7993
@@ -150,10 +161,21 @@ def env_g_lists():
         return Response(json.dumps(data), content_type='application/json')
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 20, type=int)
+    # 处理数据库数据分页问题
+    if page < 1 or limit < 1:
+        data["msg"] = "参数非法"
+        data["code"] = 7998
+        data["result"] = False
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    if page != 1:
+        page = (page - 1) + limit
+    else:
+        page = page - 1
     s = SQLMysql()
     sql = "select group_name from jk_vgroups limit %s, %s"
-    logger.debug("select group_name from jk_vgroups limit {}, {}".format((page-1), limit))
-    li = s.query_all(sql, [(page - 1), limit, ])
+    logger.debug("select group_name from jk_vgroups limit {}, {}".format(page, limit))
+    li = s.query_all(sql, [page, limit, ])
     logger.debug("查询结果：" + str(li))
     if not li:
         data["msg"] = "暂无数据"

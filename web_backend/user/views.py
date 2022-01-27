@@ -191,6 +191,17 @@ def user_list():
     }
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', 10, type=int)
+    # 处理数据库数据分页问题
+    if page < 1 or limit < 1:
+        data["msg"] = "参数非法"
+        data["code"] = 7998
+        data["result"] = False
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    if page != 1:
+        page = (page - 1) + limit
+    else:
+        page = page - 1
     # 根据jwt开启方式，判断走哪种方式读取用户信息
     u_name = None
     if settings.Config.jwt_on == 1:
@@ -213,8 +224,8 @@ def user_list():
         return Response(json.dumps(data), content_type='application/json')
     if is_null[0] == 1:
         sql = "select u_name, u_phone, is_active from user_info where is_delete=0 limit %s, %s"
-        logger.debug("select u_name, u_phone, is_active from user_info where is_delete=0 limit {}, {}".format((page-1), limit))
-        list_n = s.query_all(sql, [(page - 1), limit, ])
+        logger.debug("select u_name, u_phone, is_active from user_info where is_delete=0 limit {}, {}".format(page, limit))
+        list_n = s.query_all(sql, [page, limit, ])
         logger.debug("查询信息：" + str(list_n))
         if not list_n:
             # 理论上不会出现此种情况

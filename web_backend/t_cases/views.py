@@ -685,7 +685,7 @@ def t_lists():
             sql = "select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id=%s or t.case_name like %s limit %s, %s"
             logger.debug("select t.sort, t.case_id, t.case_name, t.method, t.path, t.url, t.params, t.status, t.is_assert, t.is_rely_on, t.rely_id, t.header, t.request_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.group_id={} or t.case_name like {} limit {}, {}".format(group_name, ('%' + str(case_name) + '%'), page, limit))
             queryp = [group_name, ('%' + str(case_name) + '%'), page, limit, ]
-    logger.debug("sql:" + sql + " " + "query:" + queryp)
+    logger.debug("sql:" + sql + " " + "query:" + str(queryp))
     li = s.query_all(sql, queryp)
     logger.debug("查询信息：" + str(li))
     if not li:

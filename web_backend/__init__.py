@@ -42,7 +42,7 @@ def interceptor():
     logger.debug("uuid: " + str(uuid) + " username: " + str(username))
     logger.debug("cookies: " + str(request.cookies))
     # jwt方式：
-    if settings.Config.jwt_on == 1:
+    if settings.UserConfig.jwt_on == 1:
         token = request.cookies.get('token', None)
         if not uuid or not username or not token:
             logger.info("返回信息" + str(data))

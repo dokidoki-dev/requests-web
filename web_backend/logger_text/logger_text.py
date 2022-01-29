@@ -4,7 +4,7 @@ import settings
 
 logger.remove(handler_id=None)
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-Log_level = settings.Log_level
+Log_level = settings.UserConfig.Log_level
 # ERROR日志
 logger.add(
     "%s/logs/{time:YYYYMMDD}-error.log" % base_dir,

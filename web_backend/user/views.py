@@ -72,18 +72,18 @@ def login():
         response = Response(json.dumps(data), content_type='application/json')
         # 处理uuid，加密
         uuid = hashlib.md5((is_null[1] + is_null[2] + str(is_null[0]) + is_null[3]).encode('utf-8')).hexdigest()
-        response.set_cookie('uuid', uuid, max_age=settings.Config.cookies_timeout, domain='.dev-web.com')
-        response.set_cookie('username', is_null[1], max_age=settings.Config.cookies_timeout, domain='.dev-web.com')
+        response.set_cookie('uuid', uuid, max_age=settings.UserConfig.cookies_timeout, domain=settings.UserConfig.cookies_domain)
+        response.set_cookie('username', is_null[1], max_age=settings.UserConfig.cookies_timeout, domain=settings.UserConfig.cookies_domain)
         logger.debug("uuid:" + str(uuid))
         logger.info("返回信息" + str(data))
         # 如果开启jwt，使用jwt方式，生成token，并且返回
-        if settings.Config.jwt_on == 1:
+        if settings.UserConfig.jwt_on == 1:
             token = JWT_USER.create_token({
                 "uuid": uuid,
                 "username": is_null[1],
                 "tmp": int(round(time.time() * 1000))  # 当前token生成时间
             })
-            response.set_cookie('token', token, max_age=settings.Config.cookies_timeout, domain='.dev-web.com')
+            response.set_cookie('token', token, max_age=settings.UserConfig.cookies_timeout, domain=settings.UserConfig.cookies_domain)
         return response
     else:
         data["code"] = 9995
@@ -173,9 +173,9 @@ def logout():
     data["msg"] = "用户已退出！"
     data["result"] = True
     response = Response(json.dumps(data), content_type='application/json')
-    response.delete_cookie('uuid', domain='.dev-web.com')
-    response.delete_cookie('username', domain='.dev-web.com')
-    response.delete_cookie('token', domain='.dev-web.com')
+    response.delete_cookie('uuid', domain=settings.UserConfig.cookies_domain)
+    response.delete_cookie('username', domain=settings.UserConfig.cookies_domain)
+    response.delete_cookie('token', domain=settings.UserConfig.cookies_domain)
     logger.info("返回信息" + str(data))
     return response
 

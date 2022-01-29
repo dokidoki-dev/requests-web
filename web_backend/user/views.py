@@ -173,9 +173,9 @@ def logout():
     data["msg"] = "用户已退出！"
     data["result"] = True
     response = Response(json.dumps(data), content_type='application/json')
-    response.delete_cookie('uuid')
-    response.delete_cookie('username')
-    response.delete_cookie('token')
+    response.delete_cookie('uuid', domain='.dev-web.com')
+    response.delete_cookie('username', domain='.dev-web.com')
+    response.delete_cookie('token', domain='.dev-web.com')
     logger.info("返回信息" + str(data))
     return response
 

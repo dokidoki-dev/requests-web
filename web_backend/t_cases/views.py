@@ -144,7 +144,7 @@ def t_addcases():
     else:
         # 不使用环境变量
         s = SQLMysql()
-        sql_nn = "select group_id from jk_cgroups from where group_name=%s"
+        sql_nn = "select group_id from jk_cgroups where group_name=%s"
         li_nn = s.query_one(sql_nn, [group_name, ])
         if not li_nn:
             data["msg"] = "参数非法"

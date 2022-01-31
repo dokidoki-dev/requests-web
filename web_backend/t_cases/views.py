@@ -869,7 +869,7 @@ def t_lists_one():
         "rely_data": rely_data,
         "rely_mode": rely_mode,
         "rely_key": rely_key,
-        "header": header,
+        "header": str(header),
         "request_data": request_data,
         "group_name": group_name
     }

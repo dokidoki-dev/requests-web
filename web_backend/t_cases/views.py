@@ -798,7 +798,7 @@ def t_lists_one():
         :return:
         '''
     data = {
-        "object": None,
+        "object": [],
         "msg": "缺少参数",
         "code": 10000,
         "result": False
@@ -850,6 +850,7 @@ def t_lists_one():
     data["object"] = list_one
     data["msg"] = "查询成功"
     data["code"] = 20402
+    data["result"] = True
     logger.info("返回信息" + str(data))
     return Response(json.dumps(data), content_type='application/json')
 

@@ -798,7 +798,10 @@ def t_lists_one():
         :return:
         '''
     data = {
-        "object": [],
+        "object": {
+            "data": {},
+            "env": {}
+        },
         "msg": "缺少参数",
         "code": 10000,
         "result": False
@@ -823,6 +826,19 @@ def t_lists_one():
         data["code"] = 20401
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
+    # 处理环境变量问题
+    # header_env = ast.literal_eval(li[17])
+    # url_env = ast.literal_eval(li[5])
+    # if url_env["mode"] == "un_env":
+    #     url_env = False
+    # else:
+    #     url_env = True
+    # if header_env["mode"] == "un_env":
+    #     header_env = False
+    # else:
+    #     header_env = True
+    url_env = False if ast.literal_eval(li[5])["mode"] == "un_env" else True
+    header_env = False if ast.literal_eval(li[17])["mode"] == "un_env" else True
     # 解构数据
     sort, case_id, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_name = li
     list_one = {
@@ -847,7 +863,9 @@ def t_lists_one():
         "request_data": request_data,
         "group_name": group_name
     }
-    data["object"] = list_one
+    data["object"]["data"] = list_one
+    data["object"]["env"]["header_env"] = header_env
+    data["object"]["env"]["url_env"] = url_env
     data["msg"] = "查询成功"
     data["code"] = 20402
     data["result"] = True

@@ -119,8 +119,8 @@ def t_addcases():
         elif url and env_header:
             # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
-            sql = "select v_id from jk_variable from where v_name=%s"
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_header))
+            sql = "select v_id from jk_variable where v_name=%s"
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_header))
             is_null = s.query_one(sql, [env_header, ])
             logger.debug("查询信息：" + str(is_null))
             if is_null is None:
@@ -131,8 +131,8 @@ def t_addcases():
         elif header and env_url:
             # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
-            sql = "select v_id from jk_variable from where v_name=%s"
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_url))
+            sql = "select v_id from jk_variable where v_name=%s"
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_url))
             is_null = s.query_one(sql, [env_url, ])
             logger.debug("查询信息：" + str(is_null))
             if is_null is None:
@@ -143,9 +143,9 @@ def t_addcases():
         elif not header and not url and env_url and env_header:
             # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
-            sql = "select v_id from jk_variable from where v_name=%s"
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_header))
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_url))
+            sql = "select v_id from jk_variable where v_name=%s"
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_header))
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_url))
             is_null01 = s.query_one(sql, [env_header, ])
             is_null02 = s.query_one(sql, [env_url, ])
             logger.debug("查询信息：" + str(is_null01))
@@ -414,8 +414,8 @@ def t_updatecases():
         elif url and env_header:
             # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
-            sql = "select v_id from jk_variable from where v_name=%s"
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_header))
+            sql = "select v_id from jk_variable where v_name=%s"
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_header))
             is_null = s.query_one(sql, [env_header, ])
             logger.debug("查询信息：" + str(is_null))
             if is_null is None:
@@ -426,8 +426,8 @@ def t_updatecases():
         elif header and env_url:
             # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
-            sql = "select v_id from jk_variable from where v_name=%s"
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_url))
+            sql = "select v_id from jk_variable where v_name=%s"
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_url))
             is_null = s.query_one(sql, [env_url, ])
             logger.debug("查询信息：" + str(is_null))
             if is_null is None:
@@ -438,9 +438,9 @@ def t_updatecases():
         elif not header and not url and env_url and env_header:
             # 查询当前虚拟环境变量是否存在
             s = SQLMysql()
-            sql = "select v_id from jk_variable from where v_name=%s"
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_header))
-            logger.debug("select v_id from jk_variable from where v_name={}".format(env_url))
+            sql = "select v_id from jk_variable where v_name=%s"
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_header))
+            logger.debug("select v_id from jk_variable where v_name={}".format(env_url))
             is_null01 = s.query_one(sql, [env_header, ])
             is_null02 = s.query_one(sql, [env_url, ])
             logger.debug("查询信息：" + str(is_null01))
@@ -827,16 +827,6 @@ def t_lists_one():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 处理环境变量问题
-    # header_env = ast.literal_eval(li[17])
-    # url_env = ast.literal_eval(li[5])
-    # if url_env["mode"] == "un_env":
-    #     url_env = False
-    # else:
-    #     url_env = True
-    # if header_env["mode"] == "un_env":
-    #     header_env = False
-    # else:
-    #     header_env = True
     url_env = False if ast.literal_eval(li[5])["mode"] == "un_env" else True
     header_env = False if ast.literal_eval(li[17])["mode"] == "un_env" else True
     # 解构数据

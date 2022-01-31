@@ -88,6 +88,7 @@ def t_addcases():
         is_assert = verify.is_assert
     # 处理params参数合规
     if not params:
+        params = None
         logger.info("params: None")
     else:
         try:
@@ -383,6 +384,7 @@ def t_updatecases():
         is_assert = verify.is_assert
     # 处理params参数合规
     if not params:
+        params = None
         logger.info("params: None")
     else:
         try:

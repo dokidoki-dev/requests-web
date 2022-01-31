@@ -839,6 +839,18 @@ def t_lists_one():
     header_env = False if ast.literal_eval(li[17])["mode"] == "un_env" else True
     # 解构数据
     sort, case_id, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_name = li
+    # 处理环境变量
+    try:
+        header = ast.literal_eval(header)
+        header = header["data"]
+        url = ast.literal_eval(url)
+        url = url["data"]
+    except Exception as e:
+        logger.info("数据类型转换错误：" + str(e))
+        data["msg"] = "内部错误"
+        data["code"] = 20403
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
     list_one = {
         "case_id": case_id,
         "sort": sort,

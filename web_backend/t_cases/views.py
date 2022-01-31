@@ -759,12 +759,20 @@ def t_lists():
         # 处理环境变量的问题
         if url and url["mode"] == "env":
             sql_un = "select v_data from jk_variable where v_name=%s"
-            url = s.query_one(sql_un, [url["data"], ])[0]
+            url = s.query_one(sql_un, [url["data"], ])
+            if url is None:
+                continue
+            else:
+                url = url[0]
         elif url and url["mode"] == "un_env":
             url = url["data"]
         if header and header["mode"] == "env":
             sql_un = "select v_data from jk_variable where v_name=%s"
-            header = s.query_one(sql_un, [header["data"], ])[0]
+            header = s.query_one(sql_un, [header["data"], ])
+            if header is None:
+                continue
+            else:
+                header = header[0]
         elif header and header["mode"] == "un_env":
             header = header["data"]
         list_all.append({

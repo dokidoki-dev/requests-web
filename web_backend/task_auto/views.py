@@ -137,6 +137,15 @@ def task_add():
             data["msg"] = "当前分组没有用例"
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
+        list_available = []
+        for i in range(len(lists)):
+            status = lists[5]
+            # 判断当前用例是否处于正在执行队列中，处于执行中时，不允许用例组执行
+            if status == 1:
+                data["code"] = 39999
+                data["msg"] = "部分用例已经处于执行队列中"
+                logger.info("返回信息" + str(data))
+                return Response(json.dumps(data), content_type='application/json')
         for i in range(len(lists)):
             case_id, method, path, url, params, status, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_mode, rely_key, rely_data, header, request_data = lists[i]
             list_all = {
@@ -158,12 +167,6 @@ def task_add():
                 "header": header,
                 "request_data": request_data
             }
-            # 判断当前用例是否处于正在执行队列中，处于执行中时，不允许用例组执行
-            if status == 1:
-                data["code"] = 39999
-                data["msg"] = "部分用例已经处于执行队列中"
-                logger.info("返回信息" + str(data))
-                return Response(json.dumps(data), content_type='application/json')
             # 处理环境变量的问题
             # 将数据拿出来，转换为字典格式
             url = ast.literal_eval(list_all["url"])
@@ -174,10 +177,8 @@ def task_add():
                 ok = s.query_one(sql_s, [url["data"], ])
                 logger.debug(ok)
                 if ok is None:
-                    data["code"] = 30007
-                    data["msg"] = "未知错误"
-                    logger.info("返回信息" + str(data))
-                    return Response(json.dumps(data), content_type='application/json')
+                    logger.info("数据库更新语句执行异常， 用例更新失败，用例id：{}".format(case_id))
+                    continue
                 list_all["url"] = ok[0]
             elif url["mode"] == "un_env":
                 list_all["url"] = url["data"]
@@ -187,10 +188,8 @@ def task_add():
                 ok = s.query_one(sql_s, [header["data"], ])
                 logger.debug(ok)
                 if ok is None:
-                    data["code"] = 30008
-                    data["msg"] = "未知错误"
-                    logger.info("返回信息" + str(data))
-                    return Response(json.dumps(data), content_type='application/json')
+                    logger.info("数据库更新语句执行异常， 用例更新失败，用例id：{}".format(case_id))
+                    continue
                 list_all["header"] = ok[0]
             elif header["mode"] == "un_env":
                 list_all["header"] = header["data"]
@@ -198,10 +197,8 @@ def task_add():
             logger.debug("update jk_testcase set status=1 where case_id={}".format(case_id))
             ok = s.update_one(sql_status, [case_id, ])
             if not ok:
-                data["code"] = 99999
-                data["msg"] = "未知错误"
-                logger.info("返回信息" + str(data))
-                return Response(json.dumps(data), content_type='application/json')
+                logger.info("数据库更新语句执行异常， 用例更新失败，用例id：{}".format(case_id))
+                continue
             #  放入队列
             q.put((request_auto, list_all.values()))
         data["code"] = 30009

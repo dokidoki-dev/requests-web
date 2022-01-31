@@ -2,8 +2,11 @@ import ast
 import json
 import re
 from flask import Blueprint, request, Response
+from pydantic import ValidationError
+
 from mysql.pymysql import SQLMysql
 from web_backend.logger_text.logger_text import log
+from web_backend.t_cases.verification import AddCase
 
 test_cases = Blueprint('test_cases', __name__, url_prefix="/api/v1/cases")
 
@@ -70,17 +73,32 @@ def t_addcases():
     rely_mode = request.json.get("rely_mode", None)
     rely_key = request.json.get("rely_key", None)
     sort = request.json.get("sort", None)
+    # 处理数据格式
+    try:
+        verify = AddCase(sort=sort, is_rely=is_rely, is_assert=is_assert)
+    except ValidationError as e:
+        logger.info("数据格式验证失败：" + str(e))
+        data["msg"] = "参数非法"
+        data["code"] = 20001
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        sort = verify.sort
+        is_rely = verify.is_rely
+        is_assert = verify.is_assert
     # 处理params参数合规
-    if params is None:
+    if not params:
         logger.info("params: None")
     else:
-        if not isinstance(params, dict):
+        try:
+            params = ast.literal_eval(params)
+        except Exception as e:
+            logger.info("params格式错误：" + str(e))
             data["msg"] = "参数非法"
             data["code"] = 20001
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
-    sort = sort if isinstance(sort, int) else None  # int
-    request_data = request.json.get("request_data", None)
+    request_data = request.json.get("request_data", None) if request.json.get("request_data", None) else '{}'
     # 处理path
     if path:
         pattern = re.compile(r'^[/]')
@@ -151,7 +169,7 @@ def t_addcases():
             data["code"] = 20018
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
-    if not method or not request_data or not group_name or not case_name:
+    if not method or not group_name or not case_name:
         data["msg"] = "参数非法"
         data["code"] = 20006
         logger.info("返回信息" + str(data))
@@ -162,7 +180,11 @@ def t_addcases():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 校验header格式
-    if not isinstance(header, dict):
+    # 处理headers
+    try:
+        header = ast.literal_eval(header)
+    except Exception as e:
+        logger.info("header格式错误：" + str(e))
         data["msg"] = "参数非法"
         data["code"] = 20008
         logger.info("返回信息" + str(data))
@@ -207,11 +229,14 @@ def t_addcases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     # 校验request_data格式
-    if request_data and not isinstance(request_data, dict):
-        data["msg"] = "参数非法"
-        data["code"] = 20012
-        logger.info("返回信息" + str(data))
-        return Response(json.dumps(data), content_type='application/json')
+    if request_data != '{}':
+        try:
+            request_data = ast.literal_eval(request_data)
+        except Exception as e:
+            data["msg"] = "参数非法"
+            data["code"] = 20112
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
     sql_na = "insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
     sql_ya = "insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values (%s, %s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())"
@@ -237,8 +262,8 @@ def t_addcases():
             return Response(json.dumps(data), content_type='application/json')
     # 查询当前添加的用例排序是否存在重复
     sql_sort = "select count(*) from jk_testcase where group_id=%s and sort=%s"
-    is_sort_null = s.query_one(sql_sort, [group_id, sort])
-    if is_sort_null:
+    is_sort_null = s.query_one(sql_sort, [group_id, sort, ])
+    if is_sort_null[0] != 0:
         data["msg"] = "组内排序不允许重复"
         data["code"] = 20019
         logger.info("返回信息" + str(data))
@@ -342,13 +367,28 @@ def t_updatecases():
     rely_mode = request.json.get("rely_mode", None)
     rely_key = request.json.get("rely_key", None)
     sort = request.json.get("sort", None)
-    sort = sort if isinstance(sort, int) else None  # int
-    request_data = request.json.get("request_data", None)
+    request_data = request.json.get("request_data", None) if request.json.get("request_data", None) else '{}'
+    # 处理数据格式
+    try:
+        verify = AddCase(sort=sort, is_rely=is_rely, is_assert=is_assert)
+    except ValidationError as e:
+        logger.info("数据格式验证失败：" + str(e))
+        data["msg"] = "参数非法"
+        data["code"] = 20001
+        logger.info("返回信息" + str(data))
+        return Response(json.dumps(data), content_type='application/json')
+    else:
+        sort = verify.sort
+        is_rely = verify.is_rely
+        is_assert = verify.is_assert
     # 处理params参数合规
-    if params is None:
+    if not params:
         logger.info("params: None")
     else:
-        if not isinstance(params, dict):
+        try:
+            params = ast.literal_eval(params)
+        except Exception as e:
+            logger.info("params格式错误：" + str(e))
             data["msg"] = "参数非法"
             data["code"] = 20001
             logger.info("返回信息" + str(data))
@@ -424,9 +464,13 @@ def t_updatecases():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 校验header格式
-    if not isinstance(header, dict):
+    # 处理headers
+    try:
+        header = ast.literal_eval(header)
+    except Exception as e:
+        logger.info("header格式错误：" + str(e))
         data["msg"] = "参数非法"
-        data["code"] = 20108
+        data["code"] = 20008
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 校验url格式
@@ -469,11 +513,14 @@ def t_updatecases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     # 校验request_data格式
-    if request_data and not isinstance(request_data, dict):
-        data["msg"] = "参数非法"
-        data["code"] = 20112
-        logger.info("返回信息" + str(data))
-        return Response(json.dumps(data), content_type='application/json')
+    if request_data != '{}':
+        try:
+            request_data = ast.literal_eval(request_data)
+        except Exception as e:
+            data["msg"] = "参数非法"
+            data["code"] = 20112
+            logger.info("返回信息" + str(data))
+            return Response(json.dumps(data), content_type='application/json')
     s = SQLMysql()
     sql_q = "select status from jk_testcase where case_id=%s"
     sql_na = "update jk_testcase set sort=%s, case_name=%s, method=%s, path=%s, url=%s, params=%s, is_assert=%s, is_rely_on=%s, rely_id=%s, rely_data=%s, rely_mode=%s, rely_key=%s, header=%s, request_data=%s, group_id=%s, modfiy_time=now() where case_id=%s"
@@ -516,7 +563,7 @@ def t_updatecases():
     sql_sort = "select count(*) from jk_testcase where group_id=%s and sort=%s"
     logger.debug("select count(*) from jk_testcase where group_id={} and sort={}".format(group_id, sort))
     is_sort_null = s.query_one(sql_sort, [group_id, sort, ])
-    if is_sort_null:
+    if is_sort_null[0] != 0:
         data["msg"] = "组内排序不允许重复"
         data["code"] = 20019
         logger.info("返回信息" + str(data))

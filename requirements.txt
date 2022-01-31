@@ -11,3 +11,4 @@ setuptools
 loguru~=0.5.3
 Werkzeug~=1.0.1
 PyJWT~=2.3.0
+pydantic~=1.9.0

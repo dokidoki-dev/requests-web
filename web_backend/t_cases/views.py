@@ -592,10 +592,10 @@ def t_updatecases():
         }
     if is_assert == 1:
         logger.debug("update jk_testcase set sort={}, case_name={}, method={}, path={}, url={}, params={}, is_assert={}, a_data={}, a_mode={}, a_type={}, a_result_data={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
-                           is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id[0]))
+                           is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id))
         ok = s.update_one(sql_ya,
                           [sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
-                           is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id[0], ])
+                           is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id, ])
         if ok:
             data["msg"] = "修改成功"
             data["code"] = 20116
@@ -609,9 +609,9 @@ def t_updatecases():
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
         logger.debug("update jk_testcase set sort={} case_name={}, method={}, path={}, url={}, params={}, is_assert={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
-                                   str(request_data), group_id, case_id[0]))
+                                   str(request_data), group_id, case_id))
         ok = s.update_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
-                                   str(request_data), group_id, case_id[0], ])
+                                   str(request_data), group_id, case_id, ])
         if ok:
             data["msg"] = "修改成功"
             data["code"] = 20118

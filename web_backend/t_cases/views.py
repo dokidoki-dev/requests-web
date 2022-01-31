@@ -758,12 +758,12 @@ def t_lists():
             url = ast.literal_eval(url)
         # 处理环境变量的问题
         if url and url["mode"] == "env":
-            sql_un = "select v_data from jk_variable from where v_name=%s"
+            sql_un = "select v_data from jk_variable where v_name=%s"
             url = s.query_one(sql_un, [url["data"], ])[0]
         elif url and url["mode"] == "un_env":
             url = url["data"]
         if header and header["mode"] == "env":
-            sql_un = "select v_data from jk_variable from where v_name=%s"
+            sql_un = "select v_data from jk_variable where v_name=%s"
             header = s.query_one(sql_un, [header["data"], ])[0]
         elif header and header["mode"] == "un_env":
             header = header["data"]

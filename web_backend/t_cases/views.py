@@ -87,7 +87,7 @@ def t_addcases():
         is_rely = verify.is_rely
         is_assert = verify.is_assert
     # 处理params参数合规
-    if not params:
+    if not params or params == "None":
         params = None
         logger.info("params: None")
     else:
@@ -102,6 +102,8 @@ def t_addcases():
             data["code"] = 20001
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
+        else:
+            params = str(params)
     request_data = request.json.get("request_data", None) if request.json.get("request_data", None) else '{}'
     # 处理path
     if path:
@@ -299,12 +301,12 @@ def t_addcases():
             "data": url[0]
         }
     if is_assert == 1:
-        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
+        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, a_data, a_mode, a_type, a_result_data, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), params, is_assert, assert_data, assert_mode, assert_type, a_result_data,
                            is_rely, rely_id, rely_data, rely_mode, rely_key,
                            str(header),
                            str(request_data), group_id))
         ok = s.create_one(sql_ya,
-                          [sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
+                          [sort, case_name, method.upper(), path, str(url), params, is_assert, assert_data, assert_mode, assert_type, a_result_data,
                            is_rely,
                            rely_id, rely_data, rely_mode, rely_key,
                            str(header),
@@ -321,9 +323,9 @@ def t_addcases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
-        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
+        logger.debug("insert into jk_testcase (sort, case_name, method, path, url, params, is_assert, is_rely_on, rely_id, rely_data, rely_mode, rely_key, header, request_data, group_id, create_time) values ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, now())".format(sort, case_name, method.upper(), path, str(url), params, is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id))
-        ok = s.create_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
+        ok = s.create_one(sql_na, [sort, case_name, method.upper(), path, str(url), params, is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id, ])
         if ok:
             data["msg"] = "添加成功"
@@ -392,7 +394,7 @@ def t_updatecases():
         is_rely = verify.is_rely
         is_assert = verify.is_assert
     # 处理params参数合规
-    if not params:
+    if not params or params == "None":
         params = None
         logger.info("params: None")
     else:
@@ -407,6 +409,8 @@ def t_updatecases():
             data["code"] = 20001
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
+        else:
+            params = str(params)
     # 处理path
     if path:
         pattern = re.compile(r'^[/]')
@@ -610,10 +614,10 @@ def t_updatecases():
             "data": url[0]
         }
     if is_assert == 1:
-        logger.debug("update jk_testcase set sort={}, case_name={}, method={}, path={}, url={}, params={}, is_assert={}, a_data={}, a_mode={}, a_type={}, a_result_data={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
+        logger.debug("update jk_testcase set sort={}, case_name={}, method={}, path={}, url={}, params={}, is_assert={}, a_data={}, a_mode={}, a_type={}, a_result_data={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), params, is_assert, assert_data, assert_mode, assert_type, a_result_data,
                            is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id))
         ok = s.update_one(sql_ya,
-                          [sort, case_name, method.upper(), path, str(url), str(params), is_assert, assert_data, assert_mode, assert_type, a_result_data,
+                          [sort, case_name, method.upper(), path, str(url), params, is_assert, assert_data, assert_mode, assert_type, a_result_data,
                            is_rely, rely_id, rely_data, rely_mode, rely_key, str(header), str(request_data), group_id, case_id, ])
         if ok:
             data["msg"] = "修改成功"
@@ -627,9 +631,9 @@ def t_updatecases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     elif is_assert == 0:
-        logger.debug("update jk_testcase set sort={} case_name={}, method={}, path={}, url={}, params={}, is_assert={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
+        logger.debug("update jk_testcase set sort={} case_name={}, method={}, path={}, url={}, params={}, is_assert={}, is_rely_on={}, rely_id={}, rely_data={}, rely_mode={}, rely_key={}, header={}, request_data={}, group_id={}, modfiy_time=now() where case_id={}".format(sort, case_name, method.upper(), path, str(url), params, is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id, case_id))
-        ok = s.update_one(sql_na, [sort, case_name, method.upper(), path, str(url), str(params), is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
+        ok = s.update_one(sql_na, [sort, case_name, method.upper(), path, str(url), params, is_assert, is_rely, rely_id, rely_data, rely_mode, rely_key, str(header),
                                    str(request_data), group_id, case_id, ])
         if ok:
             data["msg"] = "修改成功"

@@ -92,6 +92,9 @@ def t_addcases():
         logger.info("params: None")
     else:
         try:
+            # 防止前端传入字段包含true/false，如果有，转换为python版本的True/False
+            params = params.replace("false", "False")
+            params = params.replace("true", "True")
             params = ast.literal_eval(params)
         except Exception as e:
             logger.info("params格式错误：" + str(e))
@@ -235,6 +238,9 @@ def t_addcases():
     # 校验request_data格式
     if request_data != '{}':
         try:
+            # 防止前端传入字段包含true/false，如果有，转换为python版本的True/False
+            request_data = request_data.replace("false", "False")
+            request_data = request_data.replace("true", "True")
             request_data = ast.literal_eval(request_data)
         except Exception as e:
             data["msg"] = "参数非法"
@@ -391,6 +397,9 @@ def t_updatecases():
         logger.info("params: None")
     else:
         try:
+            # 防止前端传入字段包含true/false，如果有，转换为python版本的True/False
+            params = params.replace("false", "False")
+            params = params.replace("true", "True")
             params = ast.literal_eval(params)
         except Exception as e:
             logger.info("params格式错误：" + str(e))
@@ -471,6 +480,7 @@ def t_updatecases():
     # 校验header格式
     # 处理headers
     try:
+        # 防止前端传入字段包含true/false，如果有，转换为python版本的True/False
         header = header.replace("false", "False")
         header = header.replace("true", "True")
         header = ast.literal_eval(header)
@@ -522,8 +532,12 @@ def t_updatecases():
     # 校验request_data格式
     if request_data != '{}':
         try:
+            # 防止前端传入字段包含true/false，如果有，转换为python版本的True/False
+            request_data = request_data.replace("false", "False")
+            request_data = request_data.replace("true", "True")
             request_data = ast.literal_eval(request_data)
         except Exception as e:
+            logger.info("request_data类型转换错误:" + str(e))
             data["msg"] = "参数非法"
             data["code"] = 20112
             logger.info("返回信息" + str(data))
@@ -567,10 +581,10 @@ def t_updatecases():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
     # 查询当前添加的用例排序是否存在重复
-    sql_sort = "select count(*) from jk_testcase where group_id=%s and sort=%s"
-    logger.debug("select count(*) from jk_testcase where group_id={} and sort={}".format(group_id, sort))
+    sql_sort = "select case_id from jk_testcase where group_id=%s and sort=%s"
+    logger.debug("select case_id from jk_testcase where group_id={} and sort={}".format(group_id, sort))
     is_sort_null = s.query_one(sql_sort, [group_id, sort, ])
-    if is_sort_null[0] != 0:
+    if is_sort_null and int(case_id) != int(is_sort_null[0]):
         data["msg"] = "组内排序不允许重复"
         data["code"] = 20019
         logger.info("返回信息" + str(data))

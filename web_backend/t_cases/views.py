@@ -928,9 +928,9 @@ def t_result():
         data["msg"] = "参数非法"
         data["code"] = 20500
         return Response(json.dumps(data), content_type='application/json')
-    sql = "select t.sort, t.case_id, t.case_name, t.status, t.sub_status, t.a_status, t.request_data, t.result_code, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.a_status, t.result_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id=%s"
+    sql = "select t.sort, t.case_id, t.case_name, t.status, t.sub_status, t.a_status, t.request_data, t.result_code, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.result_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id=%s"
     s = SQLMysql()
-    logger.debug("select t.sort, t.case_id, t.case_name, t.status, t.sub_status, t.a_status t.request_data, t.result_code, t.result_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id={}".format(case_id))
+    logger.debug("select t.sort, t.case_id, t.case_name, t.status, t.sub_status, t.a_status, t.request_data, t.result_code, t.is_assert, t.a_data, t.a_mode, t.a_type, t.a_result_data, t.result_data, c.group_name from jk_testcase as t INNER JOIN jk_cgroups as c ON t.group_id = c.group_id  where t.case_id={}".format(case_id))
     li = s.query_one(sql, [case_id, ])
     logger.debug("查询信息：" + str(li))
     if li is None:
@@ -939,7 +939,7 @@ def t_result():
         logger.info("返回信息" + str(data))
         return Response(json.dumps(data), content_type='application/json')
     # 解构
-    sort, case_id, case_name, status, sub_status, a_status, request_data, result_code, result_data, group_name = li
+    sort, case_id, case_name, status, sub_status, a_status, request_data, result_code, is_assert, a_data, a_mode, a_type, a_result_data, result_data, group_name = li
     list_one = {
         "case_id": case_id,
         "sort": sort,
@@ -949,6 +949,11 @@ def t_result():
         "a_status": a_status,
         "request_data": request_data,
         "result_code": result_code,
+        "is_assert": is_assert,
+        "a_data": a_data,
+        "a_mode": a_mode,
+        "a_type": a_type,
+        "a_result_data": a_result_data,
         "result_data": result_data,
         "group_name": group_name
     }

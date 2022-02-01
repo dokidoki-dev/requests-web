@@ -960,6 +960,7 @@ def t_result():
     data["object"] = list_one
     data["msg"] = "查询成功"
     data["code"] = 20502
+    data["result"] = True
     logger.info("返回信息" + str(data))
     return Response(json.dumps(data), content_type='application/json')
 

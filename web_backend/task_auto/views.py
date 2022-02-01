@@ -138,7 +138,7 @@ def task_add():
             logger.info("返回信息" + str(data))
             return Response(json.dumps(data), content_type='application/json')
         for i in range(len(lists)):
-            status = lists[5]
+            status = lists[i][5]
             # 判断当前用例是否处于正在执行队列中，处于执行中时，不允许用例组执行
             if status == 1:
                 data["code"] = 39999

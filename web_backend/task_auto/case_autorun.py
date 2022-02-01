@@ -263,11 +263,15 @@ def request_auto(item: list):
                 sql_rely = "select result_data from jk_testcase where case_id =%s"
                 ok = s.query_one(sql_rely, [rely_id, ])
                 if ok is None:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     logger.info("依赖用例没有回复结果")
                     return False
                 # 处理读取依赖用例返回数据的value
                 rely_result_value = rely_data.split(".")[1:] if rely_data else None
                 if rely_result_value is None:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     return False
                 ok = ok[0]
                 item = "ok"
@@ -282,7 +286,9 @@ def request_auto(item: list):
                     if rely_mode == 3:
                         request_data[rely_key] = eval(item)
                 except Exception as e:
-                    logger.error(e)
+                    logger.info(e)
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     return False
                 r = request_get(url, header, params, request_data)
                 if r is None:
@@ -319,6 +325,8 @@ def request_auto(item: list):
             sql = "select result_data from jk_testcase where rely_id=%s"
             da = s.query_one(sql, [rely_id, ])
             if not da:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
                 return False
             r = request_get(url, header, params, request_data)
@@ -358,11 +366,15 @@ def request_auto(item: list):
             sql_rely = "select result_data from jk_testcase where case_id =%s"
             ok = s.query_one(sql_rely, [rely_id, ])
             if ok is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 logger.info("依赖用例没有回复结果")
                 return False
             # 处理读取依赖用例返回数据的value
             rely_result_value = rely_data.split(".")[1:] if rely_data else None
             if rely_result_value is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 return False
             ok = ok[0]
             item = "ok"
@@ -379,7 +391,9 @@ def request_auto(item: list):
                 if rely_mode == 3:
                     request_data[rely_key] = eval(item)
             except Exception as e:
-                logger.error(e)
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
+                logger.info(e)
                 return False
             r = request_get(url, header, params, request_data)
             if r is None:
@@ -424,11 +438,15 @@ def request_auto(item: list):
                 sql_rely = "select result_data from jk_testcase where case_id =%s"
                 ok = s.query_one(sql_rely, [rely_id, ])
                 if ok is None:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     logger.info("依赖用例没有回复结果")
                     return False
                 # 处理读取依赖用例返回数据的value
                 rely_result_value = rely_data.split(".")[1:] if rely_data else None
                 if rely_result_value is None:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     return False
                 ok = ok[0]
                 item = "ok"
@@ -445,6 +463,8 @@ def request_auto(item: list):
                     if rely_mode == 3:
                         request_data[rely_key] = eval(item)
                 except Exception as e:
+                    sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                    s.update_one(sql_f, [0, 0, 201, case_id, ])
                     logger.error(e)
                     return False
                 r = request_post(url, header, params, request_data)
@@ -455,7 +475,7 @@ def request_auto(item: list):
                 li = json.loads(r.text)
                 status_code = 200 if r.status_code == 200 else 201
                 if status_code != 200:
-                    logger.error("接口返回状态码非200，无法断言")
+                    logger.info("接口返回状态码非200，无法断言")
                     sql_i = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_status=%s, result_data=%s, modfiy_time=now() where case_id=%s"
                     logger.debug(
                         "update jk_testcase set status=0, sub_status=0, result_code={}, a_status=0, result_data={} where case_id={}".format(
@@ -482,6 +502,8 @@ def request_auto(item: list):
             sql = "select result_data from jk_testcase where rely_id=%s"
             da = s.query_one(sql, [rely_id, ])
             if not da:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 logger.error(request_auto.__name__ + "：依赖数据不存在返回数据")
                 return False
             r = request_post(url, header, params, request_data)
@@ -521,11 +543,15 @@ def request_auto(item: list):
             sql_rely = "select result_data from jk_testcase where case_id =%s"
             ok = s.query_one(sql_rely, [rely_id, ])
             if ok is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 logger.info("依赖用例没有回复结果")
                 return False
             # 处理读取依赖用例返回数据的value
             rely_result_value = rely_data.split(".")[1:] if rely_data else None
             if rely_result_value is None:
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
                 return False
             ok = ok[0]
             item = "ok"
@@ -542,7 +568,9 @@ def request_auto(item: list):
                 if rely_mode == 3:
                     request_data[rely_key] = eval(item)
             except Exception as e:
-                logger.error(e)
+                sql_f = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, modfiy_time=now() where case_id=%s"
+                s.update_one(sql_f, [0, 0, 201, case_id, ])
+                logger.info(e)
                 return False
             r = request_post(url, header, params, request_data)
             if r is None:

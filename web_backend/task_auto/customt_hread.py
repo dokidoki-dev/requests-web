@@ -9,7 +9,6 @@ q = auto_queue()
 # 自定义线程
 class CustomThread(threading.Thread):
     def __init__(self, queue, **kwargs):
-        self.sql = "update jk_testcase set status=%s, sub_status=%s, result_code=%s, a_result_data=%s, a_status=%s, result_data=%s where case_id=%s"
         super(CustomThread, self).__init__(**kwargs)
         self.__queue = queue
 

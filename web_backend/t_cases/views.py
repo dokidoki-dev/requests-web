@@ -183,6 +183,9 @@ def t_addcases():
     # 校验header格式
     # 处理headers
     try:
+        # 防止前端传入字段包含true/false，如果有，转换为python版本的True/False
+        header = header.replace("true", "True")
+        header = header.replace("false", "False")
         header = ast.literal_eval(header)
     except Exception as e:
         logger.info("header格式错误：" + str(e))
@@ -468,6 +471,8 @@ def t_updatecases():
     # 校验header格式
     # 处理headers
     try:
+        header = header.replace("false", "False")
+        header = header.replace("true", "True")
         header = ast.literal_eval(header)
     except Exception as e:
         logger.info("header格式错误：" + str(e))

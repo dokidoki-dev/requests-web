@@ -9,4 +9,4 @@ greenlet
 setuptools
 loguru~=0.5.3
 Werkzeug~=1.0.1
-PyJWT~=2.3.0
+PyJWT~=2.4.0
